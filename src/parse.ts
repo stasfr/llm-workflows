@@ -1,6 +1,28 @@
 import fs from 'fs/promises';
 
-const processText = (textValue) => {
+const INPUT_FILE = 'plain_data/input.json';
+const OUTPUT_FILE = 'plain_data/output.json';
+
+type TextValue = string | { text: string } | (string | { text: string })[];
+
+interface Message {
+  text: TextValue;
+  date: string;
+}
+
+interface InputData { messages: Message[]; }
+
+interface Post {
+  text: string;
+  date: string;
+}
+
+/**
+ * Рекурсивно обрабатывает текстовые значения, если они в виде массива - конкатенирует
+ * @param textValue - Входное значение текста.
+ * @returns - Обработанная текстовая строка.
+ */
+const processText = (textValue: TextValue): string => {
   if (!textValue) return '';
 
   if (typeof textValue === 'string') return textValue;
@@ -17,56 +39,45 @@ const processText = (textValue) => {
   return '';
 };
 
-const transformMessagesToPosts = (inputData) => {
+/**
+ * Преобразует сообщения в посты.
+ * @param inputData - Входные данные с сообщениями.
+ * @returns - Объект с постами.
+ */
+const transformMessagesToPosts = (inputData: InputData): Post[] => {
   if (!inputData || !Array.isArray(inputData.messages)) {
     console.error('Ошибка: Входной JSON не содержит массив \'messages\'.');
 
-    return { posts: [] };
+    return [];
   }
 
-  const posts = inputData.messages
-    .map((message) => {
-      // Используем нашу новую мощную функцию для обработки текста
+  const posts: Post[] = inputData.messages
+    .map((message: Message) => {
       const processedText = processText(message.text);
 
-      // Возвращаем объект с обработанным текстом и датой
       return {
         text: processedText,
         date: message.date,
       };
     })
-    // Отфильтровываем посты, у которых в итоге не оказалось текста
-    .filter((post) => post.text.trim() !== '');
+    .filter((post: Post) => post.text.trim() !== '');
 
-  return { posts: posts };
+  return posts;
 };
 
-const INPUT_FILE = 'plain_data/input.json';
-const OUTPUT_FILE = 'plain_data/output.json';
+/**
+ * Основная функция для обработки файла.
+ */
+const processFile = async (): Promise<void> => {
+  const rawData = await fs.readFile(INPUT_FILE, 'utf8');
+  const inputJson = JSON.parse(rawData) as InputData;
 
-// Основная асинхронная функция для выполнения всех действий
-const processFile = async () => {
-  try {
-    // 1. Читаем исходный файл
-    const rawData = await fs.readFile(INPUT_FILE, 'utf8');
+  const parsedPosts = transformMessagesToPosts(inputJson);
+  const outputJson = { posts: parsedPosts };
 
-    // 2. Парсим JSON в объект JavaScript
-    const inputJson = JSON.parse(rawData);
-
-    // 3. Вызываем нашу функцию для трансформации данных
-    const outputJson = transformMessagesToPosts(inputJson);
-
-    // 4. Преобразуем результирующий объект обратно в строку JSON (с красивым форматированием)
-    const outputString = JSON.stringify(outputJson, null, 2);
-
-    // 5. Записываем результат в новый файл
-    await fs.writeFile(OUTPUT_FILE, outputString);
-
-    console.log(`✅ Файл ${OUTPUT_FILE} успешно создан!`);
-  } catch (error) {
-    console.error('❌ Произошла ошибка во время выполнения скрипта:', error);
-  }
+  const outputString = JSON.stringify(outputJson, null, 2);
+  await fs.writeFile(OUTPUT_FILE, outputString);
+  console.log(`✅ Файл ${OUTPUT_FILE} успешно создан!`);
 };
 
-// Запускаем процесс
-processFile();
+await processFile();
