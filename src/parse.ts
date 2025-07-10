@@ -2,10 +2,12 @@ import fs from 'fs/promises';
 
 const processText = (textValue) => {
   if (!textValue) return '';
+
   if (typeof textValue === 'string') return textValue;
 
   if (Array.isArray(textValue)) {
-    return textValue.map(part => processText(part)).join('');
+    return textValue.map((part) => processText(part))
+      .join('');
   }
 
   if (typeof textValue === 'object' && typeof textValue.text === 'string') {
@@ -17,27 +19,26 @@ const processText = (textValue) => {
 
 const transformMessagesToPosts = (inputData) => {
   if (!inputData || !Array.isArray(inputData.messages)) {
-    console.error("Ошибка: Входной JSON не содержит массив 'messages'.");
+    console.error('Ошибка: Входной JSON не содержит массив \'messages\'.');
+
     return { posts: [] };
   }
 
   const posts = inputData.messages
-    .map(message => {
+    .map((message) => {
       // Используем нашу новую мощную функцию для обработки текста
       const processedText = processText(message.text);
 
       // Возвращаем объект с обработанным текстом и датой
       return {
         text: processedText,
-        date: message.date
+        date: message.date,
       };
     })
     // Отфильтровываем посты, у которых в итоге не оказалось текста
-    .filter(post => post.text.trim() !== '');
+    .filter((post) => post.text.trim() !== '');
 
-  return {
-    posts: posts
-  };
+  return { posts: posts };
 };
 
 const INPUT_FILE = 'plain_data/input.json';
@@ -62,7 +63,6 @@ const processFile = async () => {
     await fs.writeFile(OUTPUT_FILE, outputString);
 
     console.log(`✅ Файл ${OUTPUT_FILE} успешно создан!`);
-
   } catch (error) {
     console.error('❌ Произошла ошибка во время выполнения скрипта:', error);
   }
