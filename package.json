@@ -1,0 +1,30 @@
+{
+  "name": "custom-rag",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx --watch --env-file .env src/index.ts",
+    "search": "node search.js",
+    "parse": "node parse.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@zilliz/milvus2-sdk-node": "^2.5.11",
+    "dotenv": "^17.2.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.30.1",
+    "@stylistic/eslint-plugin": "^5.1.0",
+    "@tsconfig/node24": "^24.0.1",
+    "@types/node": "^24.0.12",
+    "eslint": "^9.30.1",
+    "tsconfig-paths": "^4.2.0",
+    "tsx": "^4.20.3",
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.36.0"
+  }
+}
