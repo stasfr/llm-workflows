@@ -49,40 +49,32 @@ async function processJsonStream(filePath: string): Promise<Map<string, number>>
     new StreamArray(),
   ]);
 
-  return new Promise((resolve, reject) => {
-    pipeline.on('data', ({ value }) => {
+  try {
+    for await (const { value } of pipeline) {
       if (isPost(value)) {
         buildNgramMap(value.text, dbMap);
       }
-    });
+    }
 
-    pipeline.on('end', () => {
-      resolve(dbMap);
-    });
-
-    pipeline.on('error', (err) => {
-      console.error('Stream processing error:', err);
-      reject(err);
-    });
-  });
+    return dbMap;
+  } catch (err) {
+    console.error('Stream processing error:', err);
+    throw err;
+  }
 }
 
 // --- Main execution ---
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-const dataFilePath = join(__dirname, '..', 'plain_data', 'posts.json');
+const dataFilePath = join(__dirname, '..', 'plain_data', 'testPosts.json');
 
-console.log(`Starting to process file: ${dataFilePath}`);
+async function main(): Promise<void> {
+  const nGrammMap = await processJsonStream(dataFilePath);
 
-processJsonStream(dataFilePath)
-  .then((finalMap) => {
-    console.log('Processing finished.');
-    console.log('Total unique n-grams found:', finalMap.size);
-    // Выведем топ-10 для примера
-    const sortedMap = [...finalMap.entries()].sort((a, b) => b[1] - a[1]);
-    console.log('Top 10 n-grams:');
-    console.log(sortedMap.slice(0, 10));
-  })
-  .catch((error: unknown) => {
-    console.error('Failed to process JSON stream.', error);
-  });
+  console.log('Top 10 n-grams:');
+  console.log([...nGrammMap.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 10));
+}
+
+void main();
