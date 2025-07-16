@@ -185,7 +185,9 @@ function buildNgramMap(sourceStr: string, dataBaseMap: Map<string, number>): voi
     return;
   }
 
-  const normalizedStr = replaceGarbage(sourceStr.trim())
+  const ungarbageStr = replaceGarbage(sourceStr.trim());
+
+  const normalizedStr = ungarbageStr
     .split(' ')
     .filter(Boolean);
 
