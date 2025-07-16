@@ -15,9 +15,9 @@ const requestHandler = async (request: http.IncomingMessage, response: http.Serv
     }
 
     if (method === 'GET' && url === '/index-texts') {
-      await indexText();
+      const result = await indexText();
       response.writeHead(200, { 'Content-Type': 'application/json' });
-      response.end(JSON.stringify({ message: 'Indexing complete!' }));
+      response.end(JSON.stringify({ result }));
 
       return;
     }
