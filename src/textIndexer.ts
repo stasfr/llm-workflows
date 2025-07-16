@@ -90,7 +90,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const dataFilePath = join(__dirname, '..', 'plain_data', 'posts.json');
 
-async function main(): Promise<void> {
+export async function indexText(): Promise<void> {
   const [dataBaseMap, normalizedDataBaseMap] = await processJsonStream(dataFilePath);
 
   console.log('Top 10 n-grams:');
@@ -103,5 +103,3 @@ async function main(): Promise<void> {
     .sort((a, b) => b[1] - a[1])
     .slice(0, 10));
 }
-
-void main();

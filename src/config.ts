@@ -8,3 +8,5 @@ export const EMBEDDING_MODEL_NAME = 'text-embedding-intfloat-multilingual-e5-lar
 export const QUERY_TEXT = 'Павлино, стрельба, убийство';
 
 export const BATCH_SIZE = 50;
+
+export const PORT = 3000;
