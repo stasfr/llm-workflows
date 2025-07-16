@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsx --watch --env-file .env src/index.ts",
+    "server": "tsx --watch --env-file .env src/server.ts",
     "search": "node search.js",
     "parse": "node parse.js"
   },
