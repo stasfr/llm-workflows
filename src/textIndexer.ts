@@ -13,7 +13,7 @@ const dataBaseMap = new Map<string, number>();
 
 interface Post { text: string; }
 
-function isPost(value: unknown): value is Post {
+export function isPost(value: unknown): value is Post {
   if (value === null || typeof value !== 'object') {
     return false;
   }
@@ -177,7 +177,7 @@ function replaceGarbage(sourceStr: string): string {
   return cleanStr;
 }
 
-function normalizeSourceStr(sourceStr: string): string | null {
+export function normalizeSourceStr(sourceStr: string): string | null {
   const postIsGarbage = GARBAGE_POSTS_LIST.some((garbage) => sourceStr.includes(garbage));
 
   if (postIsGarbage) {
