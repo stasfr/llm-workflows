@@ -46,8 +46,8 @@ async function getEmbedding(text: string): Promise<number[]> {
 /**
  * Основная функция для выполнения поиска в Milvus.
  */
-async function main(): Promise<void> {
-  console.log(`--- Запускаем поиск по коллекции "${COLLECTION_NAME}" ---`);
+export async function searchText(): Promise<void> {
+  console.log(`--- Запрос поиска: ${QUERY_TEXT} ---`);
 
   const milvusClient = new MilvusClient({ address: MILVUS_ADDRESS });
 
@@ -86,5 +86,3 @@ async function main(): Promise<void> {
     await milvusClient.releaseCollection({ collection_name: COLLECTION_NAME });
   }
 }
-
-await main();
