@@ -7,7 +7,6 @@ import {
 } from '@/config.js';
 
 import { MilvusClient } from '@zilliz/milvus2-sdk-node';
-import { promises as fs } from 'fs';
 
 interface EmbeddingResponse { data: { embedding: number[]; }[]; }
 
@@ -76,9 +75,6 @@ export async function searchText(): Promise<void> {
     } else {
       console.log('Ничего не найдено.');
     }
-
-    const outputPath = 'search_results.json';
-    await fs.writeFile(outputPath, JSON.stringify(searchResults, null, 2));
   } catch (error: unknown) {
     console.error('--- Произошла критическая ошибка! ---');
     console.error(error);
