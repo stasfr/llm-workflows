@@ -131,7 +131,7 @@ async function createMilvusCollection(milvusClient: MilvusClient): Promise<void>
 async function main(): Promise<void> {
   const __filename: string = fileURLToPath(import.meta.url);
   const __dirname: string = dirname(__filename);
-  const DATA_FILE_PATH: string = join(__dirname, '..', 'plain_data', 'output.json');
+  const DATA_FILE_PATH: string = join(__dirname, '..', 'plain_data', 'posts.json');
 
   const milvusClient = new MilvusClient({ address: MILVUS_ADDRESS });
 
@@ -151,50 +151,54 @@ async function main(): Promise<void> {
       new StreamArray(),
     ]);
 
-    try {
-      const batch: BatchData[] = [];
+    const processAndInsertBatch = async (posts: Post[]): Promise<void> => {
+      const texts = posts
+        .map((p) => normalizeSourceStr(p.text))
+        .filter((text): text is string => !!text);
 
-      for await (const { value } of pipeline) {
-        if (isPost(value)) {
-          const normalizedStr = normalizeSourceStr(value.text);
+      if (texts.length === 0) return;
 
-          if (normalizedStr) {
-            const embedding = await getEmbedding(normalizedStr);
+      console.log(`Получаем эмбеддинги для ${texts.length.toString()} текстов...`);
+      const embeddings = await Promise.all(texts.map(getEmbedding));
 
-            if (embedding) {
-              batch.push({
-                vector: embedding,
-                text: normalizedStr,
-              });
-            }
-          }
-        }
-
-        if (batch.length >= BATCH_SIZE) {
-          console.log(`Вставляем пакет из ${batch.length.toString()} элементов...`);
-          const result = await milvusClient.insert({
-            collection_name: COLLECTION_NAME,
-            fields_data: batch as unknown as RowData[],
+      const batchData: BatchData[] = [];
+      embeddings.forEach((embedding, index) => {
+        if (embedding) {
+          batchData.push({
+            vector: embedding,
+            text: texts[index],
           });
-
-          if (result.status.error_code !== 'Success') {
-            console.error(`Ошибка вставки порции: ${result.status.reason}`);
-          }
-
-          batch.length = 0;
         }
-      }
+      });
 
-      if (batch.length > 0) {
-        console.log(`Вставляем последний пакет из ${batch.length.toString()} элементов...`);
+      if (batchData.length > 0) {
+        console.log(`Вставляем пакет из ${batchData.length.toString()} элементов...`);
         const result = await milvusClient.insert({
           collection_name: COLLECTION_NAME,
-          fields_data: batch as unknown as RowData[],
+          fields_data: batchData as unknown as RowData[],
         });
 
         if (result.status.error_code !== 'Success') {
-          console.error(`Ошибка вставки последней порции: ${result.status.reason}`);
+          console.error(`Ошибка вставки порции: ${result.status.reason}`);
         }
+      }
+    };
+
+    try {
+      let postsBatch: Post[] = [];
+      for await (const { value } of pipeline) {
+        if (isPost(value)) {
+          postsBatch.push(value);
+        }
+
+        if (postsBatch.length >= BATCH_SIZE) {
+          await processAndInsertBatch(postsBatch);
+          postsBatch = [];
+        }
+      }
+
+      if (postsBatch.length > 0) {
+        await processAndInsertBatch(postsBatch);
       }
     } catch (err) {
       console.error('Stream processing error:', err);

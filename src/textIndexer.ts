@@ -7,11 +7,11 @@ import { createReadStream } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 
+import type { Post } from './embedding.ts';
+
 const WORDS_OFFSET = 3;
 
 const dataBaseMap = new Map<string, number>();
-
-interface Post { text: string; }
 
 export function isPost(value: unknown): value is Post {
   if (value === null || typeof value !== 'object') {
