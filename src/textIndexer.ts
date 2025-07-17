@@ -9,7 +9,6 @@ import { dirname, join } from 'path';
 
 const WORDS_OFFSET = 3;
 
-// const normalizedDataBaseMap = new Map<string, number>();
 const dataBaseMap = new Map<string, number>();
 
 interface Post { text: string; }
@@ -203,26 +202,6 @@ function buildNgramMap(sourceStr: string, dataBaseMap: Map<string, number>): voi
   }
 }
 
-// function buildNormalizedNgramMap(sourceStr: string, normalizedDataBaseMap: Map<string, number>): void {
-//   const normalizedStr = sourceStr
-//     .replace(/[^а-яА-ЯёЁ ]/g, ' ')
-//     .trim()
-//     .split(' ')
-//     .filter(Boolean)
-//     .map((word) => word.toLocaleLowerCase());
-
-//   const firstIndex = 0;
-//   const lastIndex = normalizedStr.length - WORDS_OFFSET;
-
-//   for (let index = firstIndex; index <= lastIndex; index++) {
-//     const entrySlice = normalizedStr.slice(index, index + WORDS_OFFSET);
-//     const entryKey = entrySlice.join(' ');
-
-//     const currentCount = normalizedDataBaseMap.get(entryKey) ?? 0;
-//     normalizedDataBaseMap.set(entryKey, currentCount + 1);
-//   }
-// }
-
 async function processJsonStream(filePath: string): Promise<Map<string, number>> {
   const pipeline = chain([
     createReadStream(filePath),
@@ -235,7 +214,6 @@ async function processJsonStream(filePath: string): Promise<Map<string, number>>
     for await (const { value } of pipeline) {
       if (isPost(value)) {
         buildNgramMap(value.text, dataBaseMap);
-        // buildNormalizedNgramMap(value.text, normalizedDataBaseMap);
       }
     }
 
@@ -278,8 +256,6 @@ export async function indexText(): Promise<[string, number][]> {
     'зона, две детские игровые площадки, тренажеры для занятий спортом на',
     'две детские игровые площадки, тренажеры для занятий спортом на открытом',
   ];
-
-  console.log([...dataBaseMap.entries()].length);
 
   const sortedDataBase = [...dataBaseMap.entries()]
     .sort((a, b) => b[1] - a[1])
