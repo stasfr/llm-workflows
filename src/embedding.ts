@@ -138,7 +138,7 @@ export async function processFile(): Promise<void> {
   try {
     const hasCollection = await milvusClient.hasCollection({ collection_name: COLLECTION_NAME });
 
-    if (!hasCollection) {
+    if (!hasCollection.value) {
       await createMilvusCollection(milvusClient);
     }
 
