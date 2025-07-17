@@ -189,7 +189,7 @@ function normalizeSourceStr(sourceStr: string): string | null {
   return ungarbageStr;
 }
 
-function buildNgramMap(sourceStr: string, dataBaseMap: Map<string, number>): void {
+export function buildNgramMap(sourceStr: string, dataBaseMap: Map<string, number>): void {
   const normalizedStr = normalizeSourceStr(sourceStr);
 
   if (!normalizedStr) {
@@ -223,7 +223,12 @@ async function processJsonStream(filePath: string): Promise<Map<string, number>>
   try {
     for await (const { value } of pipeline) {
       if (isPost(value)) {
-        buildNgramMap(value.text, dataBaseMap);
+        const normalizedStr = normalizeSourceStr(value.text);
+
+        if (normalizedStr) {
+          // create embedding for this post
+          console.log(normalizedStr);
+        }
       }
     }
 
