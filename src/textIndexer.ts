@@ -177,24 +177,34 @@ function replaceGarbage(sourceStr: string): string {
   return cleanStr;
 }
 
-function buildNgramMap(sourceStr: string, dataBaseMap: Map<string, number>): void {
+function normalizeSourceStr(sourceStr: string): string | null {
   const postIsGarbage = GARBAGE_POSTS_LIST.some((garbage) => sourceStr.includes(garbage));
 
   if (postIsGarbage) {
-    return;
+    return null;
   }
 
   const ungarbageStr = replaceGarbage(sourceStr.trim());
 
-  const normalizedStr = ungarbageStr
+  return ungarbageStr;
+}
+
+function buildNgramMap(sourceStr: string, dataBaseMap: Map<string, number>): void {
+  const normalizedStr = normalizeSourceStr(sourceStr);
+
+  if (!normalizedStr) {
+    return;
+  }
+
+  const normalizedStrArray = normalizedStr
     .split(' ')
     .filter(Boolean);
 
   const firstIndex = 0;
-  const lastIndex = normalizedStr.length - WORDS_OFFSET;
+  const lastIndex = normalizedStrArray.length - WORDS_OFFSET;
 
   for (let index = firstIndex; index <= lastIndex; index++) {
-    const entrySlice = normalizedStr.slice(index, index + WORDS_OFFSET);
+    const entrySlice = normalizedStrArray.slice(index, index + WORDS_OFFSET);
     const entryKey = entrySlice.join(' ');
 
     const currentCount = dataBaseMap.get(entryKey) ?? 0;
