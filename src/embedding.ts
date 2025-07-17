@@ -128,10 +128,10 @@ async function createMilvusCollection(milvusClient: MilvusClient): Promise<void>
   });
 }
 
-async function main(): Promise<void> {
+export async function processFile(): Promise<void> {
   const __filename: string = fileURLToPath(import.meta.url);
   const __dirname: string = dirname(__filename);
-  const DATA_FILE_PATH: string = join(__dirname, '..', 'plain_data', 'posts.json');
+  const DATA_FILE_PATH: string = join(__dirname, '..', 'plain_data', 'testPosts.json');
 
   const milvusClient = new MilvusClient({ address: MILVUS_ADDRESS });
 
@@ -217,5 +217,3 @@ async function main(): Promise<void> {
     }
   }
 }
-
-await main();

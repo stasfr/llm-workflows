@@ -2,6 +2,7 @@ import http from 'http';
 
 import { PORT } from './config.js';
 import { indexText } from './textIndexer.js';
+import { processFile } from './embedding.js';
 
 const requestHandler = async (request: http.IncomingMessage, response: http.ServerResponse) => {
   try {
@@ -18,6 +19,14 @@ const requestHandler = async (request: http.IncomingMessage, response: http.Serv
       const result = await indexText();
       response.writeHead(200, { 'Content-Type': 'application/json' });
       response.end(JSON.stringify({ result }));
+
+      return;
+    }
+
+    if (method === 'GET' && url === '/process-texts') {
+      await processFile();
+      response.writeHead(200, { 'Content-Type': 'application/json' });
+      response.end(JSON.stringify({ message: 'done!' }));
 
       return;
     }
