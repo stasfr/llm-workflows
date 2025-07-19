@@ -7,7 +7,7 @@ type MimeType =
   | 'audio/mpeg'
   | 'audio/ogg';
 
-enum MessageType {
+export enum MessageType {
   Service = 'service',
   Message = 'message',
 }
