@@ -4,7 +4,7 @@ import { PORT } from './config.js';
 import { indexText } from './textIndexer.js';
 import { processFile } from './embedding.js';
 import { searchText } from './search.js';
-import { serviceParser, parsePlainTelegramResultData } from './parse.js';
+import { serviceParser, mapPlainTelegramResultData, parseMappedTelegramData } from './parse.js';
 
 const requestHandler = async (request: http.IncomingMessage, response: http.ServerResponse) => {
   try {
@@ -27,8 +27,16 @@ const requestHandler = async (request: http.IncomingMessage, response: http.Serv
       return;
     }
 
-    if (method === 'GET' && url === '/parse-plain-tg-data') {
-      await parsePlainTelegramResultData();
+    if (method === 'GET' && url === '/map-plain-tg-data') {
+      await mapPlainTelegramResultData();
+      response.writeHead(200, { 'Content-Type': 'application/json' });
+      response.end(JSON.stringify({ message: 'Hello, world!' }));
+
+      return;
+    }
+
+    if (method === 'GET' && url === '/parse-mapped-tg-data') {
+      await parseMappedTelegramData();
       response.writeHead(200, { 'Content-Type': 'application/json' });
       response.end(JSON.stringify({ message: 'Hello, world!' }));
 
@@ -36,7 +44,7 @@ const requestHandler = async (request: http.IncomingMessage, response: http.Serv
     }
 
     if (method === 'GET' && url === '/parse-tg-data') {
-      await parsePlainTelegramResultData();
+      await mapPlainTelegramResultData();
       response.writeHead(200, { 'Content-Type': 'application/json' });
       response.end(JSON.stringify({ message: 'Hello, world!' }));
 
