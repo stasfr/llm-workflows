@@ -14,8 +14,8 @@ interface Post {
   date: string;
 }
 
-export const serviceParser = async (): Promise<Set<string[]>> => {
-  const ServiceSet = new Set<string[]>();
+export const serviceParser = async (): Promise<Set<string>> => {
+  const ServiceSet = new Set<string>();
 
   const rawData = await fs.readFile(INPUT_FILE, 'utf8');
   const inputJson = JSON.parse(rawData) as TgData;
