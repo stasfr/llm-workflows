@@ -13,6 +13,13 @@ enum MessageType {
 }
 type MessageAction = 'create_channel' | 'pin_message';
 
+type MediaType =
+  | 'video_file'
+  | 'animation'
+  | 'audio_file'
+  | 'video_message'
+  | 'voice_message';
+
 interface Answer {
   text: string;
   voters: number;
@@ -82,6 +89,7 @@ export interface Service extends MessageBase {
   actor_id: string;
   action: MessageAction;
   title: string;
+  message_id?: number;
 }
 
 export interface Message extends MessageBase {
@@ -104,6 +112,9 @@ export interface Message extends MessageBase {
   thumbnail_file_size?: number;
   duration_seconds?: number;
   reply_to_message_id?: number;
+  forwarded_from?: string;
+  media_spoiler?: boolean;
+  media_type?: MediaType;
 }
 
 export interface TgData {
