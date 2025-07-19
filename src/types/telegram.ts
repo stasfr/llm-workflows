@@ -1,4 +1,4 @@
-type MimeType =
+export type MimeType =
   | 'application/pdf'
   | 'video/mp4'
   | 'image/jpeg'
@@ -67,7 +67,7 @@ type TextEntityType =
   | 'phone'
   | 'hashtag';
 
-interface TextEntity {
+export interface TextEntity {
   type: TextEntityType;
   text: string;
   href?: string;
