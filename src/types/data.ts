@@ -7,4 +7,4 @@ export interface MappedTelegramData {
   photo?: string;
 }
 
-export interface ParsedTelegramData extends Omit<MappedTelegramData, 'text_entities'> { text: string; }
+export interface ParsedTelegramData extends Omit<MappedTelegramData, 'text_entities'> { text?: string; }

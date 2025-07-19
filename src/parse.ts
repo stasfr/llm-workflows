@@ -139,7 +139,7 @@ export const parseMappedTelegramData = async (): Promise<void> => {
       return false;
     }
 
-    return 'id' in value && 'date' in value && 'date_unixtime' in value && 'text_entities' in value;
+    return 'id' in value && 'date' in value && 'text_entities' in value;
   };
 
   const pipeline = chain([
@@ -153,19 +153,22 @@ export const parseMappedTelegramData = async (): Promise<void> => {
 
     for await (const { value } of pipeline) {
       if (isMappedTelegramData(value)) {
-        const mappedTelegramData = value;
+        if (value.text_entities.length > 0 || value.photo) {
+          const text = value.text_entities.map((entity) => entity.text)
+            .join('');
 
-        const text = mappedTelegramData.text_entities.map((entity) => entity.text)
-          .join('');
+          const parsedTelegramData: ParsedTelegramData = {
+            id: value.id,
+            date: value.date,
+            photo: value.photo,
+          };
 
-        const parsedTelegramData: ParsedTelegramData = {
-          id: mappedTelegramData.id,
-          date: mappedTelegramData.date,
-          photo: mappedTelegramData.photo,
-          text,
-        };
+          if (text) {
+            parsedTelegramData.text = text;
+          }
 
-        result.push(parsedTelegramData);
+          result.push(parsedTelegramData);
+        }
       }
     }
 
