@@ -90,7 +90,7 @@ const transformMessagesToPosts = (inputData: InputData): Post[] => {
   return posts;
 };
 
-export const parsePlainTelegramTResultData = async (): Promise<void> => {
+export const parsePlainTelegramResultData = async (): Promise<void> => {
   const isMessage = (value: unknown): value is Message => {
     if (value === null || typeof value !== 'object') {
       return false;

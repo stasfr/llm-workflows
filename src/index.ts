@@ -4,7 +4,7 @@ import { PORT } from './config.js';
 import { indexText } from './textIndexer.js';
 import { processFile } from './embedding.js';
 import { searchText } from './search.js';
-import { serviceParser, parsePlainTelegramTResultData } from './parse.js';
+import { serviceParser, parsePlainTelegramResultData } from './parse.js';
 
 const requestHandler = async (request: http.IncomingMessage, response: http.ServerResponse) => {
   try {
@@ -28,7 +28,7 @@ const requestHandler = async (request: http.IncomingMessage, response: http.Serv
     }
 
     if (method === 'GET' && url === '/parse-plain-tg-data') {
-      await parsePlainTelegramTResultData();
+      await parsePlainTelegramResultData();
       response.writeHead(200, { 'Content-Type': 'application/json' });
       response.end(JSON.stringify({ message: 'Hello, world!' }));
 
@@ -36,7 +36,7 @@ const requestHandler = async (request: http.IncomingMessage, response: http.Serv
     }
 
     if (method === 'GET' && url === '/parse-tg-data') {
-      await parsePlainTelegramTResultData();
+      await parsePlainTelegramResultData();
       response.writeHead(200, { 'Content-Type': 'application/json' });
       response.end(JSON.stringify({ message: 'Hello, world!' }));
 
