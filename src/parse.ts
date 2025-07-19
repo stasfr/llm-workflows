@@ -25,7 +25,7 @@ interface Post {
 export const serviceParser = async (): Promise<Set<string>> => {
   const ServiceSet = new Set<string>();
 
-  const rawData = await fs.readFile(INPUT_FILE, 'utf8');
+  const rawData = await fs.readFile(RESULT_FILE, 'utf8');
   const inputJson = JSON.parse(rawData) as TgData;
 
   inputJson.messages.forEach((message) => {
@@ -115,12 +115,8 @@ export const mapPlainTelegramResultData = async (): Promise<void> => {
         const parsedData: MappedTelegramData = {
           id: value.id,
           date: value.date,
-          date_unixtime: value.date_unixtime,
           text_entities: value.text_entities,
           photo: value.photo,
-          file: value.file,
-          file_name: value.file_name,
-          mime_type: value.mime_type,
         };
 
         result.push(parsedData);
@@ -165,11 +161,7 @@ export const parseMappedTelegramData = async (): Promise<void> => {
         const parsedTelegramData: ParsedTelegramData = {
           id: mappedTelegramData.id,
           date: mappedTelegramData.date,
-          date_unixtime: mappedTelegramData.date_unixtime,
           photo: mappedTelegramData.photo,
-          file: mappedTelegramData.file,
-          file_name: mappedTelegramData.file_name,
-          mime_type: mappedTelegramData.mime_type,
           text,
         };
 
