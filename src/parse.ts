@@ -1,14 +1,11 @@
+import type { Message, TgData } from './types/telegram.js';
+
 import fs from 'fs/promises';
 
-const INPUT_FILE = 'plain_data/input.json';
+const INPUT_FILE = 'plain_data/tg/result.json';
 const OUTPUT_FILE = 'plain_data/output.json';
 
 type TextValue = string | { text: string } | (string | { text: string })[];
-
-interface Message {
-  text: TextValue;
-  date: string;
-}
 
 interface InputData { messages: Message[]; }
 
@@ -16,6 +13,27 @@ interface Post {
   text: string;
   date: string;
 }
+
+export const serviceParser = async (): Promise<Set<string[]>> => {
+  const ServiceSet = new Set<string[]>();
+
+  const rawData = await fs.readFile(INPUT_FILE, 'utf8');
+  const inputJson = JSON.parse(rawData) as TgData;
+
+  inputJson.messages.forEach((message) => {
+    if (Array.isArray(message.text) && message.text.length) {
+      message.text.forEach((text) => {
+        if (typeof text === 'object') {
+          const keys = JSON.stringify(Object.keys(text));
+
+          ServiceSet.add(keys);
+        }
+      });
+    }
+  });
+
+  return ServiceSet;
+};
 
 /**
  * Рекурсивно обрабатывает текстовые значения, если они в виде массива - конкатенирует
@@ -68,7 +86,7 @@ const transformMessagesToPosts = (inputData: InputData): Post[] => {
 /**
  * Основная функция для обработки файла.
  */
-const processFile = async (): Promise<void> => {
+export const processFile = async (): Promise<void> => {
   const rawData = await fs.readFile(INPUT_FILE, 'utf8');
   const inputJson = JSON.parse(rawData) as InputData;
 
@@ -79,5 +97,3 @@ const processFile = async (): Promise<void> => {
   await fs.writeFile(OUTPUT_FILE, outputString);
   console.log(`✅ Файл ${OUTPUT_FILE} успешно создан!`);
 };
-
-await processFile();
