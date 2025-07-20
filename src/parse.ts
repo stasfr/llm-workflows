@@ -1,3 +1,10 @@
+import {
+  RESULT_FILE,
+  MAPPED_FILE,
+  PARSED_FILE,
+  FILTERED_FILE,
+} from './config.js';
+
 import { chain } from 'stream-chain';
 import parser from 'stream-json';
 import Pick from 'stream-json/filters/Pick.js';
@@ -8,10 +15,6 @@ import { createReadStream } from 'fs';
 
 import type { MappedTelegramData, ParsedTelegramData } from './types/data.js';
 import { MessageType, type Message, type TgData } from './types/telegram.js';
-
-const RESULT_FILE = 'plain_data/tg/result.json';
-const MAPPED_FILE = 'plain_data/mappedMessages.json';
-const PARSED_FILE = 'plain_data/parsedMessages.json';
 
 type TextValue = string | { text: string } | (string | { text: string })[];
 
@@ -181,3 +184,89 @@ export const parseMappedTelegramData = async (): Promise<void> => {
     throw err;
   }
 };
+
+export async function filterParsedTelegramData(
+  garbagePrasesList: string[],
+  garbagePostsList: string[],
+  exceptions: string[],
+  wordOffset: number,
+): Promise<[string, number][]> {
+  const dataBaseMap = new Map<string, number>();
+
+  const isParsedTelegramData = (value: unknown): value is ParsedTelegramData => {
+    if (value === null || typeof value !== 'object') {
+      return false;
+    }
+
+    return 'id' in value && 'date' in value && ('text' in value || 'photo' in value);
+  };
+
+  const pipeline = chain([
+    createReadStream(PARSED_FILE),
+    parser(),
+    new StreamArray(),
+  ]);
+
+  try {
+    const result: ParsedTelegramData[] = [];
+
+    for await (const { value } of pipeline) {
+      if (isParsedTelegramData(value)) {
+        if (value.text) {
+          // проверяем на рекламные посты
+          const garbageSearchResult = garbagePostsList.some((garbage) => value.text?.includes(garbage));
+
+          if (garbageSearchResult) {
+            continue;
+          }
+
+          // очищаем от мусорных фраз
+          let cleanStr = value.text;
+
+          garbagePrasesList.forEach((garbage) => {
+            cleanStr = cleanStr.replace(garbage, '');
+          });
+
+          cleanStr = cleanStr.trim();
+
+          // делаем n gramm
+          const normalizedStrArray = cleanStr
+            .split(' ')
+            .filter(Boolean);
+
+          const firstIndex = 0;
+          const lastIndex = normalizedStrArray.length - wordOffset;
+
+          for (let index = firstIndex; index <= lastIndex; index++) {
+            const entrySlice = normalizedStrArray.slice(index, index + wordOffset);
+            const entryKey = entrySlice.join(' ');
+
+            const currentCount = dataBaseMap.get(entryKey) ?? 0;
+            dataBaseMap.set(entryKey, currentCount + 1);
+          }
+
+          // сохраняем "чистый" пост
+          result.push(value);
+        }
+      }
+    }
+
+    const outputString = JSON.stringify(result, null, 2);
+    await fs.writeFile(FILTERED_FILE, outputString);
+
+    console.log(`✅ Файл ${FILTERED_FILE} успешно создан!`);
+  } catch (err) {
+    console.error('Stream processing error:', err);
+    throw err;
+  }
+
+  const sortedDataBase = [...dataBaseMap.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 10 + exceptions.length)
+    .filter((entry) => !exceptions.includes(entry[0]));
+
+  console.log('Top 10 n-grams:');
+  console.log(sortedDataBase);
+
+  return sortedDataBase;
+}
