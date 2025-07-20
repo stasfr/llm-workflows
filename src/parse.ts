@@ -16,15 +16,6 @@ import { createReadStream } from 'fs';
 import type { MappedTelegramData, ParsedTelegramData } from './types/data.js';
 import { MessageType, type Message, type TgData } from './types/telegram.js';
 
-type TextValue = string | { text: string } | (string | { text: string })[];
-
-interface InputData { messages: Message[]; }
-
-interface Post {
-  text: string;
-  date: string;
-}
-
 export const serviceParser = async (): Promise<Set<string>> => {
   const ServiceSet = new Set<string>();
 
@@ -44,54 +35,6 @@ export const serviceParser = async (): Promise<Set<string>> => {
   });
 
   return ServiceSet;
-};
-
-/**
- * Рекурсивно обрабатывает текстовые значения, если они в виде массива - конкатенирует
- * @param textValue - Входное значение текста.
- * @returns - Обработанная текстовая строка.
- */
-const processText = (textValue: TextValue): string => {
-  if (!textValue) return '';
-
-  if (typeof textValue === 'string') return textValue;
-
-  if (Array.isArray(textValue)) {
-    return textValue.map((part) => processText(part))
-      .join('');
-  }
-
-  if (typeof textValue === 'object' && typeof textValue.text === 'string') {
-    return textValue.text;
-  }
-
-  return '';
-};
-
-/**
- * Преобразует сообщения в посты.
- * @param inputData - Входные данные с сообщениями.
- * @returns - Объект с постами.
- */
-const transformMessagesToPosts = (inputData: InputData): Post[] => {
-  if (!inputData || !Array.isArray(inputData.messages)) {
-    console.error('Ошибка: Входной JSON не содержит массив \'messages\'.');
-
-    return [];
-  }
-
-  const posts: Post[] = inputData.messages
-    .map((message: Message) => {
-      const processedText = processText(message.text);
-
-      return {
-        text: processedText,
-        date: message.date,
-      };
-    })
-    .filter((post: Post) => post.text.trim() !== '');
-
-  return posts;
 };
 
 export const mapPlainTelegramResultData = async (): Promise<void> => {
