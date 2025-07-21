@@ -189,7 +189,10 @@ export async function filterParsedTelegramData(
           }
 
           // сохраняем "чистый" пост
-          result.push(value);
+          result.push({
+            ...value,
+            text: cleanStr,
+          });
         }
       }
     }
@@ -207,9 +210,6 @@ export async function filterParsedTelegramData(
     .sort((a, b) => b[1] - a[1])
     .slice(0, 10 + exceptions.length)
     .filter((entry) => !exceptions.includes(entry[0]));
-
-  console.log('Top 10 n-grams:');
-  console.log(sortedDataBase);
 
   return sortedDataBase;
 }
