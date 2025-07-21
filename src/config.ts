@@ -1,4 +1,4 @@
-export const API_URL = '192.168.1.103';
+export const API_URL = '192.168.1.102';
 
 export const MILVUS_ADDRESS = `${API_URL}:19530`;
 export const COLLECTION_NAME = 'test_rag_collection_with_date';
