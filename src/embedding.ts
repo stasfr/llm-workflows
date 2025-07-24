@@ -228,6 +228,8 @@ async function processPost(post: ParsedTelegramData): Promise<ProcessedPostData 
 
 export async function getPostsEmbeddings(count: number): Promise<void> {
   const milvusClient = new MilvusClient({ address: MILVUS_ADDRESS });
+  let firstIteration = true;
+  const batchTimes: number[] = [];
 
   try {
     const hasCollection = await milvusClient.hasCollection({ collection_name: COLLECTION_NAME });
@@ -259,8 +261,25 @@ export async function getPostsEmbeddings(count: number): Promise<void> {
         return;
       }
 
+      const batchStartTime = Date.now();
+
       processedCount += posts.length;
-      console.log(`-- обработка ${processedCount.toString()}/${count.toString()} записей --`);
+
+      if (firstIteration) {
+        console.log(`-- обработка ${processedCount.toString()}/${count.toString()} записей --`);
+        console.log('Вычисляем примерное время...');
+        firstIteration = false;
+      } else {
+        const averageTime = batchTimes.reduce((a, b) => a + b, 0) / batchTimes.length;
+        const batchesRemaining = (count - processedCount) / BATCH_SIZE;
+        const timeRemaining = new Date(batchesRemaining * averageTime);
+        const hours = timeRemaining.getUTCHours();
+        const minutes = timeRemaining.getUTCMinutes();
+        const seconds = timeRemaining.getUTCSeconds();
+
+        console.log(`-- обработка ${processedCount.toString()}/${count.toString()} записей --`);
+        console.log(`Примерное время до окончания: ${hours.toString()}ч ${minutes.toString()}м ${seconds.toString()}с`);
+      }
 
       console.log(`Processing batch of ${posts.length.toString()} posts...`);
 
@@ -300,6 +319,9 @@ export async function getPostsEmbeddings(count: number): Promise<void> {
           fields_data: dataToInsert,
         });
       }
+
+      const batchEndTime = Date.now();
+      batchTimes.push(batchEndTime - batchStartTime);
     };
 
     try {
