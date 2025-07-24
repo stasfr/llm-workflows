@@ -277,11 +277,8 @@ export async function getPostsEmbeddings(count: number): Promise<void> {
         const minutes = timeRemaining.getUTCMinutes();
         const seconds = timeRemaining.getUTCSeconds();
 
-        console.log(`-- обработка ${processedCount.toString()}/${count.toString()} записей --`);
-        console.log(`Примерное время до окончания: ${hours.toString()}ч ${minutes.toString()}м ${seconds.toString()}с`);
+        console.log(`-- обработка ${processedCount.toString()}/${count.toString()}. время до окончания: ${hours.toString()}ч ${minutes.toString()}м ${seconds.toString()}с  --`);
       }
-
-      console.log(`Processing batch of ${posts.length.toString()} posts...`);
 
       const processedData = await Promise.all(posts.map(processPost));
       const dataToInsert: RowData[] = [];
