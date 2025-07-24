@@ -5,7 +5,7 @@ import {
   LM_STUDIO_URL,
   EMBEDDING_MODEL_NAME,
   CHAT_COMPLETION_MODEL_NAME,
-  // BATCH_SIZE,
+  BATCH_SIZE,
   FILTERED_FILE,
 } from '@/config.js';
 
@@ -169,7 +169,7 @@ async function processPost(post: ParsedTelegramData): Promise<number[] | null> {
   return await getEmbedding(postText);
 }
 
-export async function getPostsEmbeddings(): Promise<void> {
+export async function getPostsEmbeddings(count: number): Promise<void> {
   const milvusClient = new MilvusClient({ address: MILVUS_ADDRESS });
 
   try {
@@ -195,31 +195,63 @@ export async function getPostsEmbeddings(): Promise<void> {
       new StreamArray(),
     ]);
 
+    let batch: ParsedTelegramData[] = [];
+    let processedCount = 0;
+    const processBatch = async (posts: ParsedTelegramData[]): Promise<void> => {
+      if (posts.length === 0) {
+        return;
+      }
+
+      processedCount += posts.length;
+      console.log(`-- обработка ${processedCount}/${count} записей --`);
+
+      console.log(`Processing batch of ${posts.length.toString()} posts...`);
+
+      const embeddings = await Promise.all(posts.map(processPost));
+      const dataToInsert: RowData[] = [];
+
+      for (let i = 0; i < posts.length; i++) {
+        const post = posts[i];
+        const embedding = embeddings[i];
+
+        if (embedding) {
+          const text = Array.isArray(post.text)
+            ? post.text.join('\n')
+            : (post.text ?? '');
+
+          dataToInsert.push({
+            post_id: post.id,
+            date: post.date,
+            text,
+            vector: embedding,
+          });
+        }
+      }
+
+      if (dataToInsert.length > 0) {
+        await milvusClient.insert({
+          collection_name: COLLECTION_NAME,
+          fields_data: dataToInsert,
+        });
+      }
+    };
+
     try {
       for await (const { value } of pipeline) {
         if (!isParsedTelegramData(value)) {
           continue;
         }
 
-        const embedding = await processPost(value);
+        batch.push(value);
 
-        if (embedding) {
-          const text = Array.isArray(value.text)
-            ? value.text.join('\n')
-            : (value.text ?? '');
-
-          const dataToInsert: RowData = {
-            post_id: value.id,
-            date: value.date,
-            text,
-            vector: embedding,
-          };
-
-          await milvusClient.insert({
-            collection_name: COLLECTION_NAME,
-            fields_data: [dataToInsert],
-          });
+        if (batch.length >= BATCH_SIZE) {
+          await processBatch(batch);
+          batch = [];
         }
+      }
+
+      if (batch.length > 0) {
+        await processBatch(batch);
       }
     } catch (err) {
       console.error('Stream processing error:', err);

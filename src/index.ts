@@ -8,6 +8,7 @@ import {
   filterParsedTelegramData,
 } from './parse.js';
 import { getPostsEmbeddings } from './embedding.js';
+import { countRecords } from './countRecords.js';
 
 const server = fastify();
 
@@ -75,7 +76,9 @@ server.post('/filter-parsed-data', async (request, reply) => {
 
 server.get('/get-posts-embeddings', async (request, reply) => {
   try {
-    await getPostsEmbeddings();
+    const count = await countRecords();
+
+    await getPostsEmbeddings(count);
     reply.code(200)
       .send({ message: 'done!' });
   } catch (error) {
