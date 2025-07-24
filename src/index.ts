@@ -80,11 +80,11 @@ server.get('/get-posts-embeddings', async (request, reply) => {
     const count = await countRecords();
 
     if (count) {
-      await getPostsEmbeddings(count);
+      getPostsEmbeddings(count);
     }
 
-    reply.code(200)
-      .send({ message: 'done!' });
+    reply.code(202)
+      .send({ message: 'Процесс получения эмбеддингов запущен в фоновом режиме' });
   } catch (error) {
     console.error('Error processing request:', error);
     reply.code(500)
