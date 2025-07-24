@@ -25,7 +25,13 @@ import type { ParsedTelegramData } from './types/data.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-async function getEmbedding(text: string): Promise<number[] | null> {
+async function getEmbedding(text: string): Promise<{
+  embedding: number[];
+  usage: {
+    prompt_tokens: number;
+    total_tokens: number
+  }
+} | null> {
   const payload: IEmbeddingRequest = {
     model: EMBEDDING_MODEL_NAME,
     input: [text],
@@ -45,10 +51,20 @@ async function getEmbedding(text: string): Promise<number[] | null> {
 
   const data = await response.json() as IEmbeddingResponse;
 
-  return data.data[0].embedding;
+  return {
+    embedding: data.data[0].embedding,
+    usage: data.usage,
+  };
 }
 
-async function getChatCompletion(image: string): Promise<string | null> {
+async function getChatCompletion(image: string): Promise<{
+  content: string;
+  usage: {
+    prompt_tokens: number;
+    completion_tokens: number;
+    total_tokens: number;
+  }
+} | null> {
   const payload: IChatCompletionRequest = {
     model: CHAT_COMPLETION_MODEL_NAME,
     messages: [
@@ -97,7 +113,10 @@ async function getChatCompletion(image: string): Promise<string | null> {
 
   const data = await response.json() as IChatCompletionResponse;
 
-  return data.choices[0].message.content;
+  return {
+    content: data.choices[0].message.content,
+    usage: data.usage,
+  };
 }
 
 async function createMilvusCollection(milvusClient: MilvusClient): Promise<void> {
@@ -129,6 +148,14 @@ async function createMilvusCollection(milvusClient: MilvusClient): Promise<void>
         data_type: DataType.VarChar,
         max_length: 65535,
       },
+      {
+        name: 'image_process_usage',
+        data_type: DataType.JSON,
+      },
+      {
+        name: 'embedding_usage',
+        data_type: DataType.JSON,
+      },
     ],
   });
   await milvusClient.createIndex({
@@ -141,8 +168,28 @@ async function createMilvusCollection(milvusClient: MilvusClient): Promise<void>
   });
 }
 
-async function processPost(post: ParsedTelegramData): Promise<number[] | null> {
+interface ProcessedPostData {
+  embeddingData: {
+    embedding: number[];
+    usage: {
+      prompt_tokens: number;
+      total_tokens: number
+    };
+  } | null;
+  imageUsage: {
+    prompt_tokens: number;
+    completion_tokens: number;
+    total_tokens: number
+  } | null;
+}
+
+async function processPost(post: ParsedTelegramData): Promise<ProcessedPostData | null> {
   let imageDescription = '';
+  let imageUsage: {
+    prompt_tokens: number;
+    completion_tokens: number;
+    total_tokens: number
+  } | null = null;
 
   if (post.photo) {
     const imagePath = resolvePath(__dirname, '..', 'plain_data', 'tg', post.photo);
@@ -151,10 +198,11 @@ async function processPost(post: ParsedTelegramData): Promise<number[] | null> {
       const imageBuffer = readFileSync(imagePath);
       const base64Image = imageBuffer.toString('base64');
       const imageDataUrl = `data:image/jpeg;base64,${base64Image}`;
-      const completion = await getChatCompletion(imageDataUrl);
+      const completionData = await getChatCompletion(imageDataUrl);
 
-      if (completion) {
-        imageDescription = completion;
+      if (completionData) {
+        imageDescription = completionData.content;
+        imageUsage = completionData.usage;
       }
     } catch (error) {
       console.error(`Failed to process image ${post.photo}:`, error);
@@ -166,7 +214,16 @@ async function processPost(post: ParsedTelegramData): Promise<number[] | null> {
       ${imageDescription}
     `;
 
-  return await getEmbedding(postText);
+  const embeddingData = await getEmbedding(postText);
+
+  if (!embeddingData) {
+    return null;
+  }
+
+  return {
+    embeddingData,
+    imageUsage,
+  };
 }
 
 export async function getPostsEmbeddings(count: number): Promise<void> {
@@ -203,18 +260,18 @@ export async function getPostsEmbeddings(count: number): Promise<void> {
       }
 
       processedCount += posts.length;
-      console.log(`-- обработка ${processedCount}/${count} записей --`);
+      console.log(`-- обработка ${processedCount.toString()}/${count.toString()} записей --`);
 
       console.log(`Processing batch of ${posts.length.toString()} posts...`);
 
-      const embeddings = await Promise.all(posts.map(processPost));
+      const processedData = await Promise.all(posts.map(processPost));
       const dataToInsert: RowData[] = [];
 
       for (let i = 0; i < posts.length; i++) {
         const post = posts[i];
-        const embedding = embeddings[i];
+        const data = processedData[i];
 
-        if (embedding) {
+        if (data?.embeddingData) {
           const text = Array.isArray(post.text)
             ? post.text.join('\n')
             : (post.text ?? '');
@@ -223,7 +280,16 @@ export async function getPostsEmbeddings(count: number): Promise<void> {
             post_id: post.id,
             date: post.date,
             text,
-            vector: embedding,
+            vector: data.embeddingData.embedding,
+            embedding_usage: data.embeddingData.usage ?? {
+              prompt_tokens: 0,
+              total_tokens: 0,
+            },
+            image_process_usage: data.imageUsage ?? {
+              prompt_tokens: 0,
+              completion_tokens: 0,
+              total_tokens: 0,
+            },
           });
         }
       }
