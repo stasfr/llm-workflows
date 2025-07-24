@@ -69,15 +69,21 @@ export async function searchText(search_query: string): Promise<SearchResult[]> 
     console.log('\n--- Результаты поиска (от самого похожего к наименее) ---');
 
     if (searchResults.results.length > 0) {
-      const results = searchResults.results as unknown as SearchResult[];
-      results.forEach((result) => {
+      const rawResults = searchResults.results as unknown as SearchResult[];
+      const result = rawResults
+        .map((result) => ({
+          ...result,
+          href: `https://t.me/c/1510200344/${result.post_id.toString()}`,
+        }));
+
+      result.forEach((result) => {
         console.log(`- Score: ${result.score.toFixed(4)} (Чем меньше, тем лучше для L2)`);
-        console.log(`  Post ID: ${result.post_id.toString()}`);
+        console.log(`  Link: ${result.href}`);
         console.log(`  Date: ${result.date}`);
         console.log(`  Текст: "${result.text}"\n`);
       });
 
-      return results;
+      return result;
     } else {
       console.log('Ничего не найдено.');
 
