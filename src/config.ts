@@ -8,8 +8,6 @@ export const LM_STUDIO_URL = `${API_URL}:1234`;
 export const CHAT_COMPLETION_MODEL_NAME = 'google/gemma-3-4b';
 export const EMBEDDING_MODEL_NAME = 'text-embedding-intfloat-multilingual-e5-large-instruct';
 
-export const QUERY_TEXT = 'Павлино, стрельба, убийство';
-
 export const BATCH_SIZE = 50;
 
 export const PORT = 3000;

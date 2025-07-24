@@ -40,18 +40,18 @@ async function getEmbedding(text: string): Promise<number[] | null> {
   return data.data[0].embedding;
 }
 
-export async function searchText(): Promise<void> {
-  console.log(`--- Запрос поиска: ${QUERY_TEXT} ---`);
+export async function searchText(search_query: string): Promise<SearchResult[]> {
+  console.log(`--- Запрос поиска: ${search_query} ---`);
 
   const milvusClient = new MilvusClient({ address: MILVUS_ADDRESS });
 
   try {
-    const queryVector = await getEmbedding(QUERY_TEXT);
+    const queryVector = await getEmbedding(search_query);
 
     if (!queryVector) {
       console.error('Не удалось получить вектор для запроса.');
 
-      return;
+      return [];
     }
 
     await milvusClient.loadCollection({ collection_name: COLLECTION_NAME });
@@ -69,18 +69,25 @@ export async function searchText(): Promise<void> {
     console.log('\n--- Результаты поиска (от самого похожего к наименее) ---');
 
     if (searchResults.results.length > 0) {
-      (searchResults.results as unknown as SearchResult[]).forEach((result) => {
+      const results = searchResults.results as unknown as SearchResult[];
+      results.forEach((result) => {
         console.log(`- Score: ${result.score.toFixed(4)} (Чем меньше, тем лучше для L2)`);
         console.log(`  Post ID: ${result.post_id.toString()}`);
         console.log(`  Date: ${result.date}`);
         console.log(`  Текст: "${result.text}"\n`);
       });
+
+      return results;
     } else {
       console.log('Ничего не найдено.');
+
+      return [];
     }
   } catch (error: unknown) {
     console.error('--- Произошла критическая ошибка! ---');
     console.error(error);
+
+    return [];
   } finally {
     if (milvusClient) {
       await milvusClient.releaseCollection({ collection_name: COLLECTION_NAME });

@@ -1,4 +1,4 @@
-import fastify from 'fastify';
+import fastify, { FastifyRequest } from 'fastify';
 import cors from '@fastify/cors';
 import { PORT } from './config.js';
 import {
@@ -92,11 +92,18 @@ server.get('/get-posts-embeddings', async (request, reply) => {
   }
 });
 
-server.get('/search', async (request, reply) => {
+server.post('/search', async (request: FastifyRequest<{ Body: { search_query: string } }>, reply) => {
   try {
-    await searchText();
+    const { search_query } = request.body;
+
+    if (!search_query) {
+      return await reply.code(400)
+        .send({ message: 'search_query is required' });
+    }
+
+    const results = await searchText(search_query);
     reply.code(200)
-      .send({ message: 'done!' });
+      .send({ results });
   } catch (error) {
     console.error('Error processing request:', error);
     reply.code(500)
