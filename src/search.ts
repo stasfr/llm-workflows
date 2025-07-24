@@ -1,57 +1,58 @@
 import {
   MILVUS_ADDRESS,
   COLLECTION_NAME,
-  EMBEDDING_SERVICE_URL,
+  LM_STUDIO_URL,
   EMBEDDING_MODEL_NAME,
   QUERY_TEXT,
 } from '@/config.js';
 
-import { MilvusClient } from '@zilliz/milvus2-sdk-node';
+import { MilvusClient, type RowData } from '@zilliz/milvus2-sdk-node';
+import type { IEmbeddingRequest } from './types/request.js';
+import type { IEmbeddingResponse } from './types/response.js';
 
-interface EmbeddingResponse { data: { embedding: number[]; }[]; }
-
-interface SearchResult {
+interface SearchResult extends RowData {
   score: number;
   text: string;
-  id: string;
+  post_id: number;
+  date: string;
 }
 
-/**
- * Получает эмбеддинг для заданного текста.
- * @param text - Входной текст.
- * @returns - Вектор эмбеддинга.
- */
-async function getEmbedding(text: string): Promise<number[]> {
-  const payload = {
+async function getEmbedding(text: string): Promise<number[] | null> {
+  const payload: IEmbeddingRequest = {
     model: EMBEDDING_MODEL_NAME,
-    input: text,
+    input: [text],
   };
 
-  const response = await fetch(EMBEDDING_SERVICE_URL, {
+  const response = await fetch(`${LM_STUDIO_URL}/v1/embeddings`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   });
 
   if (!response.ok) {
-    throw new Error(`Failed to get embedding for "${text}": ${response.statusText}`);
+    console.error(`Failed to get embedding for "${text}": ${response.statusText}`);
+
+    return null;
   }
 
-  const data = await response.json() as EmbeddingResponse;
+  const data = await response.json() as IEmbeddingResponse;
 
   return data.data[0].embedding;
 }
 
-/**
- * Основная функция для выполнения поиска в Milvus.
- */
 export async function searchText(): Promise<void> {
   console.log(`--- Запрос поиска: ${QUERY_TEXT} ---`);
 
   const milvusClient = new MilvusClient({ address: MILVUS_ADDRESS });
 
   try {
-    const queryVector: number[] = await getEmbedding(QUERY_TEXT);
+    const queryVector = await getEmbedding(QUERY_TEXT);
+
+    if (!queryVector) {
+      console.error('Не удалось получить вектор для запроса.');
+
+      return;
+    }
 
     await milvusClient.loadCollection({ collection_name: COLLECTION_NAME });
 
@@ -60,17 +61,19 @@ export async function searchText(): Promise<void> {
     const searchResults = await milvusClient.search({
       collection_name: COLLECTION_NAME,
       vector: queryVector,
-      topk: 3,
+      topk: 5,
       params: searchParams,
+      output_fields: ['text', 'post_id', 'date'],
     });
 
     console.log('\n--- Результаты поиска (от самого похожего к наименее) ---');
 
     if (searchResults.results.length > 0) {
-      (searchResults.results as SearchResult[]).forEach((result) => {
+      (searchResults.results as unknown as SearchResult[]).forEach((result) => {
         console.log(`- Score: ${result.score.toFixed(4)} (Чем меньше, тем лучше для L2)`);
-        console.log(`  Текст: "${result.text}"`);
-        console.log(`  ID: ${result.id}\n`);
+        console.log(`  Post ID: ${result.post_id.toString()}`);
+        console.log(`  Date: ${result.date}`);
+        console.log(`  Текст: "${result.text}"\n`);
       });
     } else {
       console.log('Ничего не найдено.');
@@ -79,6 +82,8 @@ export async function searchText(): Promise<void> {
     console.error('--- Произошла критическая ошибка! ---');
     console.error(error);
   } finally {
-    await milvusClient.releaseCollection({ collection_name: COLLECTION_NAME });
+    if (milvusClient) {
+      await milvusClient.releaseCollection({ collection_name: COLLECTION_NAME });
+    }
   }
 }

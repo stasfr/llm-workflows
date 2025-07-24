@@ -8,6 +8,7 @@ import {
   filterParsedTelegramData,
 } from './parse.js';
 import { getPostsEmbeddings } from './embedding.js';
+import { searchText } from './search.js';
 import { countRecords } from './countRecords.js';
 
 const server = fastify();
@@ -78,7 +79,22 @@ server.get('/get-posts-embeddings', async (request, reply) => {
   try {
     const count = await countRecords();
 
-    await getPostsEmbeddings(count);
+    if (count) {
+      await getPostsEmbeddings(count);
+    }
+
+    reply.code(200)
+      .send({ message: 'done!' });
+  } catch (error) {
+    console.error('Error processing request:', error);
+    reply.code(500)
+      .send({ message: 'Internal Server Error' });
+  }
+});
+
+server.get('/search', async (request, reply) => {
+  try {
+    await searchText();
     reply.code(200)
       .send({ message: 'done!' });
   } catch (error) {
