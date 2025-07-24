@@ -1,5 +1,5 @@
-import http from 'http';
-
+import fastify from 'fastify';
+import cors from '@fastify/cors';
 import { PORT } from './config.js';
 import {
   serviceParser,
@@ -8,98 +8,75 @@ import {
   filterParsedTelegramData,
 } from './parse.js';
 
-const requestHandler = async (request: http.IncomingMessage, response: http.ServerResponse) => {
-  const headers = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'OPTIONS, POST, GET',
-    'Access-Control-Max-Age': 2592000, // 30 days
-    'Access-Control-Allow-Headers': 'Content-Type',
-    'Content-Type': 'application/json',
-  };
+const server = fastify();
 
-  if (request.method === 'OPTIONS') {
-    response.writeHead(204, headers);
-    response.end();
-
-    return;
-  }
-
-  try {
-    const { url, method } = request;
-
-    if (method === 'GET' && url === '/service-parser') {
-      const result = await serviceParser();
-      console.log(result);
-
-      response.writeHead(200, headers);
-      response.end(JSON.stringify({ result }));
-
-      return;
-    }
-
-    // 1. Маппим пустую тг выгрузку в text_entities
-    if (method === 'GET' && url === '/map-plain-tg-data') {
-      await mapPlainTelegramResultData();
-      response.writeHead(200, headers);
-      response.end(JSON.stringify({ message: 'Hello, world!' }));
-
-      return;
-    }
-
-    // 2. Парсим text_entities в text: string
-    if (method === 'GET' && url === '/parse-mapped-tg-data') {
-      await parseMappedTelegramData();
-      response.writeHead(200, headers);
-      response.end(JSON.stringify({ message: 'Hello, world!' }));
-
-      return;
-    }
-
-    // для пункта 3 нам нужно иметь: список мусорных слов ("подписаться на канал") и список слова, указывающих на мусорный пост ("рекламный пост")
-    // у нас пустые массивы, смещение - 3 слова. надо составить н-грамму. после этого на клиенте выбрать что мы считаем мусором и повторить пунтк 3.1. n раз
-    // далее на клиенте у нас список мусора. а на сервере мы будем создавать фильтрованный файл
-    // 3. Удаляем лишние посты (рекламные) и удаляем лишние слова в тексте ("подписаться на канал") => filteredParsedData
-    if (method === 'POST' && url === '/filter-parsed-data') {
-      let body = '';
-
-      request.on('data', (chunk) => {
-        body += chunk.toString();
-      });
-
-      request.on('end', async () => {
-        try {
-          const { garbagePrasesList, garbagePostsList, exceptions, wordOffset } = JSON.parse(body);
-          const result = await filterParsedTelegramData(garbagePrasesList, garbagePostsList, exceptions, wordOffset);
-
-          response.writeHead(200, headers);
-          response.end(JSON.stringify({ result }));
-        } catch (error) {
-          console.error('Error parsing request body:', error);
-          response.writeHead(400, headers);
-          response.end(JSON.stringify({ message: 'Bad Request: Invalid JSON' }));
-        }
-      });
-
-      return;
-    }
-
-    // 4. обработать фото в текст, соединить описание фото и сам пост, закинуть в embedder, получить вектор, закинуть вектор в базу данных
-
-    // 5. получить поисковую строку и найти релевантные посты
-
-    response.writeHead(404, headers);
-    response.end(JSON.stringify({ message: 'Not Found' }));
-  } catch (error) {
-    console.error('Error processing request:', error);
-    response.writeHead(500, headers);
-    response.end(JSON.stringify({ message: 'Internal Server Error' }));
-  }
-};
-
-const server = http.createServer((request, response) => {
-  void requestHandler(request, response);
+server.register(cors, {
+  origin: '*',
+  methods: ['OPTIONS', 'POST', 'GET'],
+  maxAge: 2592000, // 30 days
+  allowedHeaders: ['Content-Type'],
 });
 
-server.listen(PORT, () => {
-  console.log(`Server is listening on port ${PORT.toString()}`);
+server.get('/service-parser', async (request, reply) => {
+  try {
+    const result = await serviceParser();
+    console.log(result);
+    reply.code(200)
+      .send({ result });
+  } catch (error) {
+    console.error('Error processing request:', error);
+    reply.code(500)
+      .send({ message: 'Internal Server Error' });
+  }
+});
+
+server.get('/map-plain-tg-data', async (request, reply) => {
+  try {
+    await mapPlainTelegramResultData();
+    reply.code(200)
+      .send({ message: 'Hello, world!' });
+  } catch (error) {
+    console.error('Error processing request:', error);
+    reply.code(500)
+      .send({ message: 'Internal Server Error' });
+  }
+});
+
+server.get('/parse-mapped-tg-data', async (request, reply) => {
+  try {
+    await parseMappedTelegramData();
+    reply.code(200)
+      .send({ message: 'Hello, world!' });
+  } catch (error) {
+    console.error('Error processing request:', error);
+    reply.code(500)
+      .send({ message: 'Internal Server Error' });
+  }
+});
+
+server.post('/filter-parsed-data', async (request, reply) => {
+  try {
+    const { garbagePrasesList, garbagePostsList, exceptions, wordOffset } = request.body as {
+      garbagePrasesList: string[];
+      garbagePostsList: string[];
+      exceptions: string[];
+      wordOffset: number;
+    };
+    const result = await filterParsedTelegramData(garbagePrasesList, garbagePostsList, exceptions, wordOffset);
+    reply.code(200)
+      .send({ result });
+  } catch (error) {
+    console.error('Error processing request:', error);
+    reply.code(500)
+      .send({ message: 'Internal Server Error' });
+  }
+});
+
+server.listen({ port: PORT }, (err, address) => {
+  if (err) {
+    console.error(err);
+    process.exit(1);
+  }
+
+  console.log(`Server listening at ${address}`);
 });
