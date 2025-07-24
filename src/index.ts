@@ -7,6 +7,7 @@ import {
   parseMappedTelegramData,
   filterParsedTelegramData,
 } from './parse.js';
+import { getPostsEmbeddings } from './embedding.js';
 
 const server = fastify();
 
@@ -65,6 +66,18 @@ server.post('/filter-parsed-data', async (request, reply) => {
     const result = await filterParsedTelegramData(garbagePrasesList, garbagePostsList, exceptions, wordOffset);
     reply.code(200)
       .send({ result });
+  } catch (error) {
+    console.error('Error processing request:', error);
+    reply.code(500)
+      .send({ message: 'Internal Server Error' });
+  }
+});
+
+server.get('/get-posts-embeddings', async (request, reply) => {
+  try {
+    await getPostsEmbeddings();
+    reply.code(200)
+      .send({ message: 'done!' });
   } catch (error) {
     console.error('Error processing request:', error);
     reply.code(500)

@@ -2,84 +2,36 @@ import {
   MILVUS_ADDRESS,
   COLLECTION_NAME,
   VECTOR_DIMENSION,
-  EMBEDDING_SERVICE_URL,
+  LM_STUDIO_URL,
   EMBEDDING_MODEL_NAME,
-  BATCH_SIZE,
+  CHAT_COMPLETION_MODEL_NAME,
+  // BATCH_SIZE,
+  FILTERED_FILE,
 } from '@/config.js';
 
 import { chain } from 'stream-chain';
 import parser from 'stream-json';
-import Pick from 'stream-json/filters/Pick.js';
 import StreamArray from 'stream-json/streamers/StreamArray.js';
 
 import { MilvusClient, DataType, type RowData } from '@zilliz/milvus2-sdk-node';
-import { createReadStream } from 'fs';
-import { dirname, join } from 'path';
+import { createReadStream, readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
+import { dirname, resolve as resolvePath } from 'path';
 
-import { normalizeSourceStr, isPost } from './textIndexer.js';
+import { type IEmbeddingRequest, type IChatCompletionRequest, IContentType } from './types/request.js';
+import type { IEmbeddingResponse, IChatCompletionResponse } from './types/response.js';
+import type { ParsedTelegramData } from './types/data.js';
 
-export interface Post {
-  text: string;
-  date: string;
-}
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
-export interface CompletionResponse {
-  id: string;
-  object: string;
-  created: number;
-  model: string;
-  choices: [
-    {
-      index: number;
-      logprobs: unknown;
-      finish_reason: string;
-      message: {
-        role: string;
-        content: string;
-      }
-    },
-  ];
-  usage: {
-    prompt_tokens: number;
-    completion_tokens: number;
-    total_tokens: number;
-  };
-  stats: unknown;
-  system_fingerprint: string;
-}
-
-export interface EmbeddingResponse {
-  object: string;
-  data: {
-    object: string;
-    embedding: number[];
-    index: number;
-  }[];
-  model: string;
-  usage: {
-    prompt_tokens: number;
-    total_tokens: number;
-  }
-}
-
-export interface BatchData {
-  vector: number[];
-  text: string;
-}
-
-/**
- * Получает эмбеддинг для заданного текста.
- * @param text - Входной текст.
- * @returns - Вектор эмбеддинга или null, если текст пустой.
- */
 async function getEmbedding(text: string): Promise<number[] | null> {
-  const payload = {
+  const payload: IEmbeddingRequest = {
     model: EMBEDDING_MODEL_NAME,
-    input: text,
+    input: [text],
   };
 
-  const response = await fetch(EMBEDDING_SERVICE_URL, {
+  const response = await fetch(`${LM_STUDIO_URL}/v1/embeddings`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
@@ -91,9 +43,61 @@ async function getEmbedding(text: string): Promise<number[] | null> {
     return null;
   }
 
-  const data = await response.json() as EmbeddingResponse;
+  const data = await response.json() as IEmbeddingResponse;
 
   return data.data[0].embedding;
+}
+
+async function getChatCompletion(image: string): Promise<string | null> {
+  const payload: IChatCompletionRequest = {
+    model: CHAT_COMPLETION_MODEL_NAME,
+    messages: [
+      {
+        role: 'system',
+        content: `
+        Твоя задача — составить короткое и объективное описание изображения (1-2 предложения).
+
+        Правила:
+        1.  Описывай только факты: кто/что изображено, что делает, где находится.
+        2.  Начинай ответ сразу с описания. Никаких приветствий и фраз вроде "На этом фото...".
+        3.  Не анализируй настроение, эмоции или атмосферу.
+        4.  Игнорируй любые логотипы и надписи, особенно "инстажелдор".
+        5.  Отвечай строго на русском языке.
+
+        Примеры правильного ответа:
+        - Люди отдыхают на песчаном пляже у моря.
+        - Рыжая собака породы корги лежит на зеленой траве.
+        - Два человека в камуфляже ведут перестрелку на городской улице.
+        `,
+      },
+      {
+        role: 'user',
+        content: [
+          {
+            type: IContentType.Image,
+            image_url: { url: image },
+          },
+        ],
+      },
+    ],
+    temperature: 1,
+  };
+
+  const response = await fetch(`${LM_STUDIO_URL}/v1/chat/completions`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    console.error(`Failed to get chat completion: ${response.statusText}`);
+
+    return null;
+  }
+
+  const data = await response.json() as IChatCompletionResponse;
+
+  return data.choices[0].message.content;
 }
 
 async function createMilvusCollection(milvusClient: MilvusClient): Promise<void> {
@@ -112,7 +116,16 @@ async function createMilvusCollection(milvusClient: MilvusClient): Promise<void>
         dim: VECTOR_DIMENSION,
       },
       {
+        name: 'post_id',
+        data_type: DataType.Int64,
+      },
+      {
         name: 'text',
+        data_type: DataType.VarChar,
+        max_length: 65535,
+      },
+      {
+        name: 'date',
         data_type: DataType.VarChar,
         max_length: 65535,
       },
@@ -128,11 +141,35 @@ async function createMilvusCollection(milvusClient: MilvusClient): Promise<void>
   });
 }
 
-export async function processFile(): Promise<void> {
-  const __filename: string = fileURLToPath(import.meta.url);
-  const __dirname: string = dirname(__filename);
-  const DATA_FILE_PATH: string = join(__dirname, '..', 'plain_data', 'testPosts.json');
+async function processPost(post: ParsedTelegramData): Promise<number[] | null> {
+  let imageDescription = '';
 
+  if (post.photo) {
+    const imagePath = resolvePath(__dirname, '..', 'plain_data', 'tg', post.photo);
+
+    try {
+      const imageBuffer = readFileSync(imagePath);
+      const base64Image = imageBuffer.toString('base64');
+      const imageDataUrl = `data:image/jpeg;base64,${base64Image}`;
+      const completion = await getChatCompletion(imageDataUrl);
+
+      if (completion) {
+        imageDescription = completion;
+      }
+    } catch (error) {
+      console.error(`Failed to process image ${post.photo}:`, error);
+    }
+  }
+
+  const postText = `
+      ${post.text ?? ''}
+      ${imageDescription}
+    `;
+
+  return await getEmbedding(postText);
+}
+
+export async function getPostsEmbeddings(): Promise<void> {
   const milvusClient = new MilvusClient({ address: MILVUS_ADDRESS });
 
   try {
@@ -144,61 +181,45 @@ export async function processFile(): Promise<void> {
 
     await milvusClient.loadCollection({ collection_name: COLLECTION_NAME });
 
+    const isParsedTelegramData = (value: unknown): value is ParsedTelegramData => {
+      if (value === null || typeof value !== 'object') {
+        return false;
+      }
+
+      return 'id' in value && 'date' in value && ('text' in value || 'photo' in value);
+    };
+
     const pipeline = chain([
-      createReadStream(DATA_FILE_PATH),
+      createReadStream(FILTERED_FILE),
       parser(),
-      new Pick({ filter: 'posts' }),
       new StreamArray(),
     ]);
 
-    const processAndInsertBatch = async (posts: Post[]): Promise<void> => {
-      const texts = posts
-        .map((p) => normalizeSourceStr(p.text))
-        .filter((text): text is string => !!text);
+    try {
+      for await (const { value } of pipeline) {
+        if (!isParsedTelegramData(value)) {
+          continue;
+        }
 
-      if (texts.length === 0) return;
+        const embedding = await processPost(value);
 
-      console.log(`Получаем эмбеддинги для ${texts.length.toString()} текстов...`);
-      const embeddings = await Promise.all(texts.map(getEmbedding));
-
-      const batchData: BatchData[] = [];
-      embeddings.forEach((embedding, index) => {
         if (embedding) {
-          batchData.push({
+          const text = Array.isArray(value.text)
+            ? value.text.join('\n')
+            : (value.text ?? '');
+
+          const dataToInsert: RowData = {
+            post_id: value.id,
+            date: value.date,
+            text,
             vector: embedding,
-            text: texts[index],
+          };
+
+          await milvusClient.insert({
+            collection_name: COLLECTION_NAME,
+            fields_data: [dataToInsert],
           });
         }
-      });
-
-      if (batchData.length > 0) {
-        console.log(`Вставляем пакет из ${batchData.length.toString()} элементов...`);
-        const result = await milvusClient.insert({
-          collection_name: COLLECTION_NAME,
-          fields_data: batchData as unknown as RowData[],
-        });
-
-        if (result.status.error_code !== 'Success') {
-          console.error(`Ошибка вставки порции: ${result.status.reason}`);
-        }
-      }
-    };
-
-    try {
-      let postsBatch: Post[] = [];
-      for await (const { value } of pipeline) {
-        if (isPost(value)) {
-          postsBatch.push(value);
-        }
-
-        if (postsBatch.length >= BATCH_SIZE) {
-          await processAndInsertBatch(postsBatch);
-          postsBatch = [];
-        }
-      }
-
-      if (postsBatch.length > 0) {
-        await processAndInsertBatch(postsBatch);
       }
     } catch (err) {
       console.error('Stream processing error:', err);
