@@ -315,6 +315,7 @@ export async function getPostsEmbeddings(count: number): Promise<void> {
           collection_name: COLLECTION_NAME,
           fields_data: dataToInsert,
         });
+        console.log(`-- вставлен батч. последний id: ${posts[posts.length - 1].id.toString()} --`);
       }
 
       const batchEndTime = Date.now();
