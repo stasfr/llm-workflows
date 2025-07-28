@@ -18,6 +18,7 @@ import { createReadStream, readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, resolve as resolvePath } from 'path';
 
+import { sendTelegramMessage } from './telegram.js';
 import { type IEmbeddingRequest, type IChatCompletionRequest, IContentType } from './types/request.js';
 import type { IEmbeddingResponse, IChatCompletionResponse } from './types/response.js';
 import type { ParsedTelegramData } from './types/data.js';
@@ -277,7 +278,9 @@ export async function getPostsEmbeddings(count: number): Promise<void> {
         const minutes = timeRemaining.getUTCMinutes();
         const seconds = timeRemaining.getUTCSeconds();
 
-        console.log(`-- обработка ${processedCount.toString()}/${count.toString()}. время до окончания: ${hours.toString()}ч ${minutes.toString()}м ${seconds.toString()}с  --`);
+        const message = `-- обработка ${processedCount.toString()}/${count.toString()}. время до окончания: ${hours.toString()}ч ${minutes.toString()}м ${seconds.toString()}с  --`;
+        console.log(message);
+        void sendTelegramMessage(message);
       }
 
       const processedData = await Promise.all(posts.map(processPost));
@@ -315,7 +318,9 @@ export async function getPostsEmbeddings(count: number): Promise<void> {
           collection_name: COLLECTION_NAME,
           fields_data: dataToInsert,
         });
-        console.log(`-- вставлен батч. последний id: ${posts[posts.length - 1].id.toString()} --`);
+        const message = `-- вставлен батч. последний id: ${posts[posts.length - 1].id.toString()} --`;
+        console.log(message);
+        void sendTelegramMessage(message);
       }
 
       const batchEndTime = Date.now();
@@ -346,8 +351,12 @@ export async function getPostsEmbeddings(count: number): Promise<void> {
 
     await milvusClient.flush({ collection_names: [COLLECTION_NAME] });
   } catch (error: unknown) {
-    console.error('--- Произошла критическая ошибка! ---');
+    const errorMessage = '--- Произошла критическая ошибка! ---';
+    console.error(errorMessage);
     console.error(error);
+    void sendTelegramMessage(`${errorMessage}\n${error instanceof Error
+      ? error.message
+      : String(error)}`);
   } finally {
     if (milvusClient) {
       console.log(`Освобождаем коллекцию "${COLLECTION_NAME}" из памяти...`);

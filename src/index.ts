@@ -80,7 +80,7 @@ server.get('/get-posts-embeddings', async (request, reply) => {
     const count = await countRecords();
 
     if (count) {
-      getPostsEmbeddings(count);
+      void getPostsEmbeddings(count);
     }
 
     reply.code(202)

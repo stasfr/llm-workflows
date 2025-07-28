@@ -3,7 +3,6 @@ import {
   COLLECTION_NAME,
   LM_STUDIO_URL,
   EMBEDDING_MODEL_NAME,
-  QUERY_TEXT,
 } from '@/config.js';
 
 import { MilvusClient, type RowData } from '@zilliz/milvus2-sdk-node';

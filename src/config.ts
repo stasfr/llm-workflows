@@ -16,3 +16,6 @@ export const RESULT_FILE = 'plain_data/tg/result.json';
 export const MAPPED_FILE = 'plain_data/mappedMessages.json';
 export const PARSED_FILE = 'plain_data/parsedMessages.json';
 export const FILTERED_FILE = 'plain_data/filteredMessages.json';
+
+export const TELEGRAM_BOT_API = process.env.TELEGRAM_BOT_API;
+export const TELEGRAM_CHAT_IDS = process.env.TELEGRAM_CHAT_IDS?.split(',') ?? [];
