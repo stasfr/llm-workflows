@@ -266,8 +266,9 @@ export async function getPostsEmbeddings(count: number): Promise<void> {
       processedCount += posts.length;
 
       if (firstIteration) {
-        console.log(`-- обработка ${processedCount.toString()}/${count.toString()} записей --`);
-        console.log('Вычисляем примерное время...');
+        const message = `-- обработка ${processedCount.toString()}/${count.toString()} записей. Вычисляем примерное время... --`;
+        console.log(message);
+        void sendTelegramMessage(message);
         firstIteration = false;
       } else {
         const averageTime = batchTimes.reduce((a, b) => a + b, 0) / batchTimes.length;
