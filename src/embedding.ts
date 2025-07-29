@@ -317,9 +317,6 @@ export async function getPostsEmbeddings(count: number): Promise<void> {
           collection_name: COLLECTION_NAME,
           fields_data: dataToInsert,
         });
-        const message = `-- вставлен батч. последний id: ${posts[posts.length - 1].id.toString()} --`;
-        console.log(message);
-        void sendTelegramMessage(message);
       }
 
       const batchEndTime = Date.now();
