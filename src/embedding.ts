@@ -163,9 +163,8 @@ async function createMilvusCollection(milvusClient: MilvusClient): Promise<void>
     collection_name: COLLECTION_NAME,
     field_name: 'vector',
     index_name: 'vector_idx',
-    index_type: 'IVF_FLAT',
-    metric_type: 'L2',
-    params: { nlist: 1024 },
+    index_type: 'FLAT',
+    metric_type: 'IP',
   });
 }
 

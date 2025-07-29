@@ -55,13 +55,10 @@ export async function searchText(search_query: string): Promise<SearchResult[]> 
 
     await milvusClient.loadCollection({ collection_name: COLLECTION_NAME });
 
-    const searchParams = { nprobe: 16 };
-
     const searchResults = await milvusClient.search({
       collection_name: COLLECTION_NAME,
       vector: queryVector,
       topk: 5,
-      params: searchParams,
       output_fields: ['text', 'post_id', 'date'],
     });
 

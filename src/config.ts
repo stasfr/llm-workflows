@@ -1,7 +1,7 @@
 export const API_URL = process.env.API_URL ?? '192.168.1.103';
 
 export const MILVUS_ADDRESS = `${API_URL}:19530`;
-export const COLLECTION_NAME = 'insta_jeldor_rag';
+export const COLLECTION_NAME = 'insta_jeldor_rag_flat_ip';
 export const VECTOR_DIMENSION = 1024;
 
 export const LM_STUDIO_URL = `${API_URL}:1234`;
