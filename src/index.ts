@@ -10,6 +10,7 @@ import {
 import { getPostsEmbeddings } from './embedding.js';
 import { searchText } from './search.js';
 import { countRecords } from './countRecords.js';
+import { exportEmbeddings } from './exportEmbeddings.js';
 
 const server = fastify();
 
@@ -111,7 +112,22 @@ server.post('/search', async (request: FastifyRequest<{ Body: { search_query: st
   }
 });
 
-server.listen({ port: PORT }, (err, address) => {
+server.get('/export-embeddings', async (request, reply) => {
+  try {
+    void exportEmbeddings();
+    reply.code(202)
+      .send({ message: 'Процесс экспорта эмбеддингов запущен в фоновом режиме' });
+  } catch (error) {
+    console.error('Error processing request:', error);
+    reply.code(500)
+      .send({ message: 'Internal Server Error' });
+  }
+});
+
+server.listen({
+  port: PORT,
+  host: '0.0.0.0',
+}, (err, address) => {
   if (err) {
     console.error(err);
     process.exit(1);
