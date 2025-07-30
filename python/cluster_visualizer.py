@@ -11,6 +11,7 @@ INPUT_FILE = os.path.join('..', 'plain_data', 'embeddings.json')
 OUTPUT_DIR = os.path.join('..', 'output')
 N_CLUSTERS = 64 # Можете изменить это значение, чтобы найти оптимальное количество кластеров
 OUTPUT_FILE = os.path.join(OUTPUT_DIR, f'cluster_visualization_{N_CLUSTERS}_clusters.html')  # Можете изменить это значение, чтобы найти оптимальное количество кластеров
+CLUSTERS_OUTPUT_FILE = os.path.join(OUTPUT_DIR, f'clusters_{N_CLUSTERS}.csv')
 
 def main():
     """
@@ -84,8 +85,16 @@ def main():
     if not os.path.exists(OUTPUT_DIR):
         os.makedirs(OUTPUT_DIR)
 
+    # Сохраняем HTML визуализацию
     fig.write_html(OUTPUT_FILE)
     print(f"✅ Визуализация успешно сохранена в файл: {os.path.abspath(OUTPUT_FILE)}")
+
+    # Сохраняем CSV с кластерами
+    print(f"Сохранение распределения по кластерам в {CLUSTERS_OUTPUT_FILE}...")
+    df_to_save = df[['post_id', 'text', 'cluster']].copy()
+    df_to_save.to_csv(CLUSTERS_OUTPUT_FILE, index=False, encoding='utf-8')
+    print(f"✅ Данные по кластерам сохранены в файл: {os.path.abspath(CLUSTERS_OUTPUT_FILE)}")
+
     print("--- Работа завершена ---")
 
 
