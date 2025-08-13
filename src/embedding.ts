@@ -183,7 +183,7 @@ interface ProcessedPostData {
   } | null;
 }
 
-async function processPost(post: ParsedTelegramData): Promise<ProcessedPostData | null> {
+async function processPost(post: ParsedTelegramData, withImages: boolean): Promise<ProcessedPostData | null> {
   let imageDescription = '';
   let imageUsage: {
     prompt_tokens: number;
@@ -191,7 +191,7 @@ async function processPost(post: ParsedTelegramData): Promise<ProcessedPostData 
     total_tokens: number
   } | null = null;
 
-  if (post.photo) {
+  if (post.photo && withImages) {
     const imagePath = resolvePath(__dirname, '..', 'plain_data', 'tg', post.photo);
 
     try {
@@ -226,7 +226,7 @@ async function processPost(post: ParsedTelegramData): Promise<ProcessedPostData 
   };
 }
 
-export async function getPostsEmbeddings(count: number): Promise<void> {
+export async function getPostsEmbeddings(count: number, withImages: boolean): Promise<void> {
   const milvusClient = new MilvusClient({ address: MILVUS_ADDRESS });
   let firstIteration = true;
   const batchTimes: number[] = [];
@@ -283,7 +283,7 @@ export async function getPostsEmbeddings(count: number): Promise<void> {
         void sendTelegramMessage(message);
       }
 
-      const processedData = await Promise.all(posts.map(processPost));
+      const processedData = await Promise.all(posts.map((post) => processPost(post, withImages)));
       const dataToInsert: RowData[] = [];
 
       for (let i = 0; i < posts.length; i++) {

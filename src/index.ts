@@ -76,12 +76,13 @@ server.post('/filter-parsed-data', async (request, reply) => {
   }
 });
 
-server.get('/get-posts-embeddings', async (request, reply) => {
+server.post('/get-posts-embeddings', async (request: FastifyRequest<{ Body: { withImages?: boolean } }>, reply) => {
   try {
     const count = await countRecords();
+    const withImages = request.body?.withImages ?? false;
 
     if (count) {
-      void getPostsEmbeddings(count);
+      void getPostsEmbeddings(count, withImages);
     }
 
     reply.code(202)
