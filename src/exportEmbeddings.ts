@@ -2,8 +2,8 @@ import {
   MILVUS_ADDRESS,
   COLLECTION_NAME,
 } from '@/config.js';
-import { MilvusClient, type RowData } from '@zilliz/milvus2-sdk-node';
-import fs from 'fs/promises';
+import { MilvusClient } from '@zilliz/milvus2-sdk-node';
+import fs from 'fs';
 import { resolve as resolvePath, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
@@ -16,27 +16,44 @@ const BATCH_SIZE = 1000;
 export async function exportEmbeddings() {
   console.log('--- Запуск экспорта эмбеддингов из Milvus ---');
   const milvusClient = new MilvusClient({ address: MILVUS_ADDRESS });
-  const allData: RowData[] = [];
+  const writeStream = fs.createWriteStream(OUTPUT_FILE);
+
+  writeStream.write('[');
+
+  let totalRecords = 0;
 
   try {
     await milvusClient.loadCollection({ collection_name: COLLECTION_NAME });
     console.log(`Коллекция "${COLLECTION_NAME}" успешно загружена.`);
 
-    let offset = 0;
     let hasMore = true;
+    let lastPostId = 0;
+    let isFirstRecord = true;
 
     while (hasMore) {
       const results = await milvusClient.query({
         collection_name: COLLECTION_NAME,
         output_fields: ['post_id', 'text', 'vector'],
         limit: BATCH_SIZE,
-        offset,
+        expr: `post_id > ${lastPostId.toString()}`,
+        consistency_level: 3,
       });
 
       if (results.data.length > 0) {
-        allData.push(...results.data);
-        offset += results.data.length;
-        console.log(`Получено ${allData.length.toString()} записей...`);
+        results.data.sort((a, b) => a.post_id - b.post_id);
+
+        for (const record of results.data) {
+          if (!isFirstRecord) {
+            writeStream.write(',');
+          }
+
+          writeStream.write(JSON.stringify(record, null, 2));
+          isFirstRecord = false;
+        }
+
+        totalRecords += results.data.length;
+        lastPostId = results.data[results.data.length - 1].post_id as number;
+        console.log(`Получено ${totalRecords.toString()} записей... Последний post_id: ${lastPostId.toString()}`);
       }
 
       if (results.data.length < BATCH_SIZE) {
@@ -44,11 +61,10 @@ export async function exportEmbeddings() {
       }
     }
 
-    console.log(`Всего получено ${allData.length.toString()} записей.`);
+    writeStream.write(']');
+    writeStream.end();
 
-    const outputString = JSON.stringify(allData, null, 2);
-    await fs.writeFile(OUTPUT_FILE, outputString);
-
+    console.log(`Всего сохранено ${totalRecords.toString()} записей.`);
     console.log(`✅ Эмбеддинги успешно сохранены в файл ${OUTPUT_FILE}`);
   } catch (error) {
     console.error('--- Произошла критическая ошибка во время экспорта! ---');
@@ -61,4 +77,9 @@ export async function exportEmbeddings() {
 
     console.log('--- Работа завершена ---');
   }
+}
+
+// Для прямого запуска скрипта
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  exportEmbeddings();
 }
