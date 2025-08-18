@@ -8,7 +8,9 @@
     "dev": "tsx --watch --env-file .env src/index.ts",
     "search": "node search.js",
     "parse": "node parse.js",
-    "export": "tsx --env-file .env src/exportEmbeddings.ts"
+    "export": "tsx --env-file .env src/exportEmbeddings.ts",
+    "setup:py": "pip install -r python/requirements.txt",
+    "visualize:py": "cd python && python cluster_visualizer.py"
   },
   "keywords": [],
   "author": "",
