@@ -49,7 +49,7 @@ def main():
     print(f"--- Этап 1: Обучение моделей ---")
 
     # Инициализация моделей
-    kmeans = MiniBatchKMeans(n_clusters=N_CLUSTERS, random_state=42, n_init=10, batch_size=BATCH_SIZE)
+    kmeans = MiniBatchKMeans(n_clusters=N_CLUSTERS, random_state=42, batch_size=BATCH_SIZE, n_init='auto')
     reducer = umap.UMAP(n_components=2, random_state=42)
 
     # Обучение UMAP на выборке данных для определения общей структуры
