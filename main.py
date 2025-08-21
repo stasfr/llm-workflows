@@ -1,5 +1,7 @@
+from tg_parsing.parser import map_plain_tg_data
+
 def main():
-    print("Hello from llm-workflows!")
+    map_plain_tg_data()
 
 
 if __name__ == "__main__":
