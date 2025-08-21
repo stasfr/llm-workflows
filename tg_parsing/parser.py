@@ -6,7 +6,8 @@ import os
 import json
 import ijson
 from typing import Generator
-from .types import Message
+from .telegram import Message
+from .data import MappedTelegramData
 
 DIR = 'F:\\tg-chat-exports\\test'
 INPUT_FILE = os.path.join(DIR, 'result.json')

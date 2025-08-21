@@ -1,8 +1,6 @@
 from typing import TypedDict, List, Union, Literal, NotRequired
 from enum import Enum
 
-# From src/types/telegram.ts
-
 MimeType = Literal[
     'application/pdf',
     'video/mp4',
@@ -94,7 +92,7 @@ class Service(MessageBase):
 
 class Message(MessageBase):
     type: Literal[MessageType.Message]
-    from_: str  # 'from' is a reserved keyword in Python, using 'from_' instead.
+    from_: str
     from_id: str
     edited: NotRequired[str]
     edited_unixtime: NotRequired[str]
