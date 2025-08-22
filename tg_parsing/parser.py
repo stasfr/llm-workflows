@@ -11,7 +11,7 @@ from .data import MappedTelegramData
 
 DIR = 'F:\\tg-chat-exports\\test'
 INPUT_FILE = os.path.join(DIR, 'result.json')
-OUTPUT_DIR = os.path.join('..', 'output')
+OUTPUT_DIR = DIR
 
 def stream_data(filename: str) -> Generator[Message, None, None]:
     """
@@ -29,11 +29,34 @@ def stream_data(filename: str) -> Generator[Message, None, None]:
         raise
 
 def map_plain_tg_data():
-    # Проверка существования директории для вывода
+    """
+    Обрабатывает "сырые" данные из Telegram, извлекая необходимые поля,
+    и сохраняет их в новом JSON-файле.
+    """
     if not os.path.exists(OUTPUT_DIR):
         os.makedirs(OUTPUT_DIR)
 
-    PLAIN_TG_DATA = stream_data(INPUT_FILE)
+    output_filepath = os.path.join(OUTPUT_DIR, 'mapped_telegram_data.json')
 
-    for item in PLAIN_TG_DATA:
-        print(item['id'])
+    plain_tg_data = stream_data(INPUT_FILE)
+
+    result: list[MappedTelegramData] = []
+
+    for item in plain_tg_data:
+        if item.get('type') == 'message':
+            mapped_data: MappedTelegramData = {
+                'id': item.get('id'),
+                'date': item.get('date'),
+                'text_entities': item.get('text_entities', [])
+            }
+
+            photo = item.get('photo')
+            if photo is not None:
+                mapped_data['photo'] = photo
+
+            result.append(mapped_data)
+
+    with open(output_filepath, 'w', encoding='utf-8') as f:
+        json.dump(result, f, ensure_ascii=False, indent=2)
+
+    print(f"✅ Файл {output_filepath} успешно создан!")
