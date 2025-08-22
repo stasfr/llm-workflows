@@ -67,6 +67,21 @@ def parse_raw_telegram_data() -> None:
     print(f"✅ Файл {PARSED_FILE} успешно создан!")
 
 
+def stream_parsed_tg_data(filename: str) -> Generator[ParsedTelegramData, None, None]:
+    """
+    Генератор для потокового чтения отфильтрованных данных из JSON-файла.
+    """
+    try:
+        with open(filename, 'r', encoding='utf-8') as f:
+            yield from ijson.items(f, 'item')
+    except FileNotFoundError:
+        print(f"Ошибка: Файл не найден по пути {filename}")
+        raise
+    except json.JSONDecodeError:
+        print(f"Ошибка: Не удалось прочитать JSON из файла {filename}.")
+        raise
+
+
 def filter_parsed_telegram_data(
     garbage_phrases_list: List[str],
     garbage_posts_list: List[str],
@@ -76,32 +91,31 @@ def filter_parsed_telegram_data(
     data_base_map = Counter()
 
     try:
-        with open(PARSED_FILE, 'r', encoding='utf-8') as f:
-            items = ijson.items(f, 'item')
-            result: List[ParsedTelegramData] = []
+        items = stream_parsed_tg_data(PARSED_FILE)
+        result: List[ParsedTelegramData] = []
 
-            for item in items:
-                if 'text' in item:
-                    if any(garbage in item['text'] for garbage in garbage_posts_list):
-                        continue
+        for item in items:
+            if 'text' in item:
+                if any(garbage in item['text'] for garbage in garbage_posts_list):
+                    continue
 
-                    clean_str = item['text']
-                    for garbage in garbage_phrases_list:
-                        clean_str = clean_str.replace(garbage, '')
+                clean_str = item['text']
+                for garbage in garbage_phrases_list:
+                    clean_str = clean_str.replace(garbage, '')
 
-                    clean_str = clean_str.strip()
+                clean_str = clean_str.strip()
 
-                    normalized_str_array = [word for word in clean_str.split(' ') if word]
+                normalized_str_array = [word for word in clean_str.split(' ') if word]
 
-                    for i in range(len(normalized_str_array) - word_offset + 1):
-                        entry_slice = normalized_str_array[i:i + word_offset]
-                        entry_key = ' '.join(entry_slice)
-                        data_base_map[entry_key] += 1
+                for i in range(len(normalized_str_array) - word_offset + 1):
+                    entry_slice = normalized_str_array[i:i + word_offset]
+                    entry_key = ' '.join(entry_slice)
+                    data_base_map[entry_key] += 1
 
-                    result.append({
-                        **item,
-                        'text': clean_str,
-                    })
+                result.append({
+                    **item,
+                    'text': clean_str,
+                })
 
         with open(FILTERED_FILE, 'w', encoding='utf-8') as f:
             json.dump(result, f, ensure_ascii=False, indent=2)
