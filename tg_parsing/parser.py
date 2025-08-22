@@ -35,36 +35,40 @@ def parse_raw_telegram_data() -> None:
     if not os.path.exists(OUTPUT_DIR):
         os.makedirs(OUTPUT_DIR)
 
-    plain_tg_data = stream_plain_tg_data(INPUT_FILE)
+    try:
+        plain_tg_data = stream_plain_tg_data(INPUT_FILE)
 
-    result: list[ParsedTelegramData] = []
+        result: list[ParsedTelegramData] = []
 
-    for item in plain_tg_data:
-        if item.get('type') == 'message':
-            text_entities = item.get('text_entities', [])
-            photo = item.get('photo')
+        for item in plain_tg_data:
+            if item.get('type') == 'message':
+                text_entities = item.get('text_entities', [])
+                photo = item.get('photo')
 
-            if text_entities or photo:
-                text = "".join(entity.get('text', '') for entity in text_entities)
+                if text_entities or photo:
+                    text = "".join(entity.get('text', '') for entity in text_entities)
 
-                parsed_data: ParsedTelegramData = {
-                    'id': item.get('id'),
-                    'date': item.get('date'),
-                }
+                    parsed_data: ParsedTelegramData = {
+                        'id': item.get('id'),
+                        'date': item.get('date'),
+                    }
 
-                if photo:
-                    parsed_data['photo'] = photo
+                    if photo:
+                        parsed_data['photo'] = photo
 
-                if text:
-                    parsed_data['text'] = text
+                    if text:
+                        parsed_data['text'] = text
 
-                if text or parsed_data.get('photo'):
-                    result.append(parsed_data)
+                    if text or parsed_data.get('photo'):
+                        result.append(parsed_data)
 
-    with open(PARSED_FILE, 'w', encoding='utf-8') as f:
-        json.dump(result, f, ensure_ascii=False, indent=2)
+        with open(PARSED_FILE, 'w', encoding='utf-8') as f:
+            json.dump(result, f, ensure_ascii=False, indent=2)
 
-    print(f"✅ Файл {PARSED_FILE} успешно создан!")
+        print(f"✅ Файл {PARSED_FILE} успешно создан!")
+    except Exception as e:
+        print(f"Stream processing error: {e}")
+        raise
 
 
 def stream_parsed_tg_data(filename: str) -> Generator[ParsedTelegramData, None, None]:
