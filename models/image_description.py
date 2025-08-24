@@ -3,7 +3,7 @@ from transformers import pipeline
 import torch
 
 class ImageDescription:
-    def __init__(self, model_name: str = "google/gemma-3-4b-it"):
+    def __init__(self, model_name):
         self.pipe = pipeline(
             "image-to-text",
             model=model_name,
