@@ -140,6 +140,10 @@ def filter_parsed_telegram_data(
                         **item,
                         'text': clean_str,
                     })
+                elif 'photo' in item:
+                    result.append({
+                        **item,
+                    })
                 pbar.update(1)
 
         with open(FILTERED_FILE, 'w', encoding='utf-8') as f:
