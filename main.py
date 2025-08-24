@@ -1,5 +1,4 @@
 import os
-from tg_parsing.parser import parse_raw_telegram_data, filter_parsed_telegram_data
 import models
 from tqdm import tqdm
 from tg_parsing.parser import count_json_items, stream_filtered_tg_data
@@ -41,20 +40,53 @@ def main():
     else:
         print(f"Collection '{COLLECTION_NAME}' already exists.")
 
-    print('Parsing and filtering Telegram Data')
-    parse_raw_telegram_data()
-    filter_parsed_telegram_data([], [], [], 3)
+    collection = Collection(COLLECTION_NAME)
+    collection.load()
 
     print('Loading models')
-    image_describer = models.ImageDescription(model_name="google/gemma-3-4b-it")
+    # image_describer = models.ImageDescription(model_name="google/gemma-3-4b-it")
     text_embedder = models.TextEmbedder(model_name="intfloat/multilingual-e5-large-instruct")
 
     total_items = count_json_items(FILTERED_FILE, 'item')
     filtered_tg_data = stream_filtered_tg_data(FILTERED_FILE)
 
-    with tqdm(total=total_items, desc="Processing posts") as pbar:
+    batch_size = 32
+    batch = []
+
+    with tqdm(total=total_items, desc="Processing parsed posts") as pbar:
         for item in filtered_tg_data:
+            if 'text' in item and item['text'].strip():
+                batch.append(item)
+
+            if len(batch) >= batch_size:
+                texts_to_embed = [item['text'] for item in batch]
+                embeddings = text_embedder.get_embedding(
+                    texts_to_embed
+                ).tolist()
+
+                data_to_insert = [
+                    {"post_id": item['id'], "text": item['text'], "vector": emb}
+                    for item, emb in zip(batch, embeddings)
+                ]
+                collection.insert(data_to_insert)
+                batch = []
+
             pbar.update(1)
+
+    if batch:
+        texts_to_embed = [item['text'] for item in batch]
+        embeddings = text_embedder.get_embedding(
+            texts_to_embed
+        ).tolist()
+
+        data_to_insert = [
+            {"post_id": item['id'], "text": item['text'], "vector": emb}
+            for item, emb in zip(batch, embeddings)
+        ]
+        collection.insert(data_to_insert)
+
+    collection.flush()
+    print(f"Total entities in collection: {collection.num_entities}")
 
 if __name__ == "__main__":
     main()

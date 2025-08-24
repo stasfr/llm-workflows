@@ -1,11 +1,12 @@
 from sentence_transformers import SentenceTransformer
 import torch
+from typing import List
 
 class TextEmbedder:
     def __init__(self, model_name):
         self.model = SentenceTransformer(model_name)
 
-    def get_embedding(self, text: str) -> torch.Tensor:
+    def get_embedding(self, text: List[str]) -> torch.Tensor:
         embedding_tensor = self.model.encode(
             text,
             normalize_embeddings=True,
