@@ -1,6 +1,6 @@
 from pymilvus import connections, utility, Collection, FieldSchema, DataType, CollectionSchema
 from tqdm import tqdm
-import CONSTS
+import consts
 
 # Milvus settings
 MILVUS_ADDRESS = "http://localhost:19530"
@@ -38,7 +38,7 @@ def main():
     connections.connect("default", uri=MILVUS_ADDRESS)
 
     # Convert GARBAGE_IDS to a set for efficient lookup
-    garbage_ids_set = set(CONSTS.GARBAGE_IDS)
+    garbage_ids_set = set(consts.GARBAGE_IDS)
     print(f"Converted {len(garbage_ids_set)} garbage IDs to a set for efficient filtering.")
 
     if utility.has_collection(NEW_COLLECTION_NAME):
