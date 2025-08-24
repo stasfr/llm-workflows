@@ -9,7 +9,7 @@ from tqdm import tqdm
 
 # Constants
 MILVUS_ADDRESS = "http://localhost:19530"
-COLLECTION_NAME = "test_cosine_flat"
+COLLECTION_NAME = "filtered_twice_jeldor_cosine_flat"
 VECTOR_DIMENSION = 1024
 
 # HDBSCAN parameters

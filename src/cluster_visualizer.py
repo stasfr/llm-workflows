@@ -14,7 +14,7 @@ from itertools import islice
 
 # Milvus settings
 MILVUS_ADDRESS = "http://localhost:19530"
-COLLECTION_NAME = "test_cosine_flat" # DataName_MetricType_IndexType
+COLLECTION_NAME = "filtered_twice_jeldor_cosine_flat" # DataName_MetricType_IndexType
 VECTOR_DIMENSION = 1024 # For intfloat/multilingual-e5-large-instruct
 
 N_CLUSTERS = 64

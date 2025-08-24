@@ -9,8 +9,10 @@ FILTERED_FILE = os.path.join(WORKING_DIR, 'filtered_telegram_data.json')
 
 # Milvus settings
 MILVUS_ADDRESS = "http://localhost:19530"
-COLLECTION_NAME = "test_cosine_flat" # DataName_MetricType_IndexType
+COLLECTION_NAME = "filtered_twice_jeldor_cosine_flat" # DataName_MetricType_IndexType
 VECTOR_DIMENSION = 1024 # For intfloat/multilingual-e5-large-instruct
+
+BATCH_SIZE = 128
 
 def create_milvus_collection(collection_name: str, vector_dim: int):
     fields = [
@@ -50,7 +52,6 @@ def main():
     total_items = count_json_items(FILTERED_FILE, 'item')
     filtered_tg_data = stream_filtered_tg_data(FILTERED_FILE)
 
-    batch_size = 32
     batch = []
 
     with tqdm(total=total_items, desc="Processing parsed posts") as pbar:
@@ -58,7 +59,7 @@ def main():
             if 'text' in item and item['text'].strip():
                 batch.append(item)
 
-            if len(batch) >= batch_size:
+            if len(batch) >= BATCH_SIZE:
                 texts_to_embed = [item['text'] for item in batch]
                 embeddings = text_embedder.get_embedding(
                     texts_to_embed
