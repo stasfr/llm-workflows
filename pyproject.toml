@@ -7,7 +7,7 @@ requires-python = ">=3.13.5"
 dependencies = [
     "accelerate>=1.10.0",
     "ijson>=3.4.0",
-    "numpy>=2.3.2",
+    "numpy~=2.2.0",
     "pandas>=2.3.2",
     "pillow>=11.3.0",
     "plotly>=6.3.0",
