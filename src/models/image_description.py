@@ -100,9 +100,12 @@ class ImageDescription:
                 model=self.model_name,
                 messages=[
                     {
+                        "role": "system",
+                        "content": system_prompt,
+                    },
+                    {
                         "role": "user",
                         "content": [
-                            {"type": "text", "text": prompt},
                             {
                                 "type": "image_url",
                                 "image_url": {
@@ -110,7 +113,7 @@ class ImageDescription:
                                 },
                             },
                         ],
-                    }
+                    },
                 ],
                 max_tokens=50, # Tags are usually shorter
             )
