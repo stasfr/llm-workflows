@@ -9,6 +9,8 @@ from tg_parsing.data import ParsedTelegramData
 
 GARBAGE_LIST = []
 
+GARBAGE_IDS = []
+
 PLAIN_DATA_DIR = 'F:\\tg-chat-exports\\jeldor'
 INPUT_FILE = os.path.join(PLAIN_DATA_DIR, 'result.json')
 
@@ -102,7 +104,7 @@ def stream_parsed_tg_data(filename: str) -> Generator[ParsedTelegramData, None, 
 
 def filter_parsed_telegram_data(
     garbage_phrases_list: List[str],
-    garbage_posts_list: List[str],
+    garbage_posts_list: List[int],
     exceptions: List[str],
     word_offset: int,
 ) -> List[Tuple[str, int]]:
@@ -119,11 +121,11 @@ def filter_parsed_telegram_data(
 
         with tqdm(total=total_items, desc="Filtering Parsed Data") as pbar:
             for item in items:
-                if 'text' in item:
-                    if any(garbage in item['text'] for garbage in garbage_posts_list):
-                        pbar.update(1)
-                        continue
+                if item.get('id') in garbage_posts_list:
+                    pbar.update(1)
+                    continue
 
+                if 'text' in item:
                     clean_str = item['text']
                     for garbage in garbage_phrases_list:
                         clean_str = clean_str.replace(garbage, '')
@@ -170,7 +172,7 @@ def stream_filtered_tg_data(filename: str) -> Generator[ParsedTelegramData, None
 def process_tg_data():
     print('Parsing and filtering Telegram Data')
     parse_raw_telegram_data()
-    filter_parsed_telegram_data(GARBAGE_LIST, [], [], 3)
+    filter_parsed_telegram_data(GARBAGE_LIST, GARBAGE_IDS, [], 3)
 
 if __name__ == "__main__":
     process_tg_data()
