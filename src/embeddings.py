@@ -45,7 +45,7 @@ def main():
 
     print('Loading models')
     # image_describer = models.ImageDescription(model_name="google/gemma-3-4b-it")
-    text_embedder = models.TextEmbedder(model_name="intfloat/multilingual-e5-large-instruct")
+    text_embedder = models.OpenAIEmbedder(model_name="intfloat/multilingual-e5-large-instruct")
 
     total_items = count_json_items(FILTERED_FILE, 'item')
     filtered_tg_data = stream_filtered_tg_data(FILTERED_FILE)
