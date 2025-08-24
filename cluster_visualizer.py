@@ -1,4 +1,3 @@
-# НОВЫЙ ФАЙЛ
 import os
 from pymilvus import connections, Collection
 
