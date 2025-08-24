@@ -3,13 +3,20 @@ name = "llm-workflows"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.13.5"
 dependencies = [
     "accelerate>=1.10.0",
     "ijson>=3.4.0",
+    "numpy>=2.3.2",
+    "pandas>=2.3.2",
     "pillow>=11.3.0",
+    "plotly>=6.3.0",
     "pymilvus>=2.6.0",
+    "scikit-learn>=1.7.1",
     "sentence-transformers>=5.1.0",
     "tqdm>=4.67.1",
     "transformers[torch]>=4.55.4",
+    "umap-learn==0.5.9.post2",
+    "numba==0.61.2",
+    "llvmlite==0.44.0",
 ]
