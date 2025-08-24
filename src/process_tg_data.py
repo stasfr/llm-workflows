@@ -7,9 +7,7 @@ from tqdm import tqdm
 from tg_parsing.telegram import Message
 from tg_parsing.data import ParsedTelegramData
 
-GARBAGE_LIST = []
-
-GARBAGE_IDS = []
+import CONSTS
 
 PLAIN_DATA_DIR = 'F:\\tg-chat-exports\\jeldor'
 INPUT_FILE = os.path.join(PLAIN_DATA_DIR, 'result.json')
@@ -172,7 +170,7 @@ def stream_filtered_tg_data(filename: str) -> Generator[ParsedTelegramData, None
 def process_tg_data():
     print('Parsing and filtering Telegram Data')
     parse_raw_telegram_data()
-    filter_parsed_telegram_data(GARBAGE_LIST, GARBAGE_IDS, [], 3)
+    filter_parsed_telegram_data(CONSTS.GARBAGE_LIST, CONSTS.GARBAGE_IDS, [], 3)
 
 if __name__ == "__main__":
     process_tg_data()
