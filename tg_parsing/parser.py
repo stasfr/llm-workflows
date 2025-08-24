@@ -152,3 +152,14 @@ def filter_parsed_telegram_data(
     filtered_data = [entry for entry in sorted_data_base if entry[0] not in exceptions]
 
     return filtered_data
+
+def stream_filtered_tg_data(filename: str) -> Generator[ParsedTelegramData, None, None]:
+    try:
+        with open(filename, 'r', encoding='utf-8') as f:
+            yield from ijson.items(f, 'item')
+    except FileNotFoundError:
+        print(f"Ошибка: Файл не найден по пути {filename}")
+        raise
+    except json.JSONDecodeError:
+        print(f"Ошибка: Не удалось прочитать JSON из файла {filename}.")
+        raise
