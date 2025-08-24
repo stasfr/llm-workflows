@@ -2,7 +2,7 @@ import os
 import pandas as pd
 import numpy as np
 import umap
-import hdbscan # New import
+import hdbscan
 import plotly.express as px
 from pymilvus import connections, Collection
 from tqdm import tqdm

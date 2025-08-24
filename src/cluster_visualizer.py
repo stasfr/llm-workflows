@@ -1,16 +1,13 @@
 import os
 from pymilvus import connections, Collection
 
-import json
 import os
 import pandas as pd
 import numpy as np
 from sklearn.cluster import MiniBatchKMeans
 import umap
 import plotly.express as px
-import ijson
 from tqdm import tqdm
-from itertools import islice
 
 # Milvus settings
 MILVUS_ADDRESS = "http://localhost:19530"
