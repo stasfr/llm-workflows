@@ -104,13 +104,13 @@ def visualize_hdbscan_clusters():
         x='x',
         y='y',
         color='cluster_str',
-        color_discrete_map={"-1": "lightgrey"}, # Explicitly color noise points
+        color_discrete_map={"-1": "grey"}, # Explicitly color noise points
         hover_data={'x': False, 'y': False, 'cluster': True, 'post_id': True, 'hover_text': True},
         title=f'Визуализация кластеров HDBSCAN (min_cluster_size={MIN_CLUSTER_SIZE})',
         labels={'cluster_str': 'Кластер', 'hover_text': 'Текст'}
     )
-    fig.update_traces(marker=dict(size=5, opacity=0.7))
-    fig.update_layout(legend_title_text='Кластеры', xaxis_title="UMAP 1", yaxis_title="UMAP 2")
+    fig.update_traces(marker=dict(size=5, opacity=0.8))
+    fig.update_layout(legend_title_text='Кластеры', xaxis_title="UMAP 1", yaxis_title="UMAP 2", template="plotly_dark")
 
     fig.write_html(OUTPUT_FILE)
     print(f"✅ Визуализация успешно сохранена: {os.path.abspath(OUTPUT_FILE)}")

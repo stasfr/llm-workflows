@@ -137,8 +137,8 @@ def visualize_clusters():
         title=f'Визуализация кластеров сообщений (n={N_CLUSTERS})',
         labels={'cluster': 'Кластер', 'hover_text': 'Текст'}
     )
-    fig.update_traces(marker=dict(size=5, opacity=0.7))
-    fig.update_layout(legend_title_text='Кластеры', xaxis_title="UMAP 1", yaxis_title="UMAP 2")
+    fig.update_traces(marker=dict(size=5, opacity=0.8))
+    fig.update_layout(legend_title_text='Кластеры', xaxis_title="UMAP 1", yaxis_title="UMAP 2", template="plotly_dark")
 
     # Сохранение HTML
     fig.write_html(OUTPUT_FILE)
