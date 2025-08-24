@@ -9,27 +9,31 @@ from tqdm import tqdm
 
 # Constants
 MILVUS_ADDRESS = "http://localhost:19530"
-COLLECTION_NAME = "filtered_twice_jeldor_cosine_flat"
+COLLECTION_NAME = "filtered_jeldor_cosine_flat"
 VECTOR_DIMENSION = 1024
-
-# HDBSCAN parameters
-MIN_CLUSTER_SIZE = 50 # The minimum size of a cluster
-MIN_SAMPLES = 5       # How conservative the clustering is, a higher value will consider more points as noise
-
-BATCH_SIZE = 1000 # Batch size for fetching data from Milvus
-UMAP_N_NEIGHBORS = 15
-UMAP_MIN_DIST = 0.1
+BATCH_SIZE = 1000  # Batch size for fetching data from Milvus
 UMAP_N_COMPONENTS = 2
-
 OUTPUT_DIR = os.path.join('.', 'output')
-OUTPUT_FILE = os.path.join(OUTPUT_DIR, f'hdbscan_visualization_mcs_{MIN_CLUSTER_SIZE}.html')
-CLUSTERS_OUTPUT_FILE = os.path.join(OUTPUT_DIR, f'hdbscan_clusters_mcs_{MIN_CLUSTER_SIZE}.csv')
 
-def visualize_hdbscan_clusters():
+
+def visualize_hdbscan_clusters(min_cluster_size, min_samples, umap_n_neighbors, umap_min_dist):
     """
     Fetches vectors from Milvus, performs UMAP dimensionality reduction,
     clusters the data using HDBSCAN, and generates an interactive visualization.
     """
+    # Generate dynamic output file names
+    file_suffix = f"mcs_{min_cluster_size}_ms_{min_samples}_nn_{umap_n_neighbors}_md_{umap_min_dist}"
+    output_file = os.path.join(OUTPUT_DIR, f'hdbscan_viz_{file_suffix}.html')
+    clusters_output_file = os.path.join(OUTPUT_DIR, f'hdbscan_clusters_{file_suffix}.csv')
+
+    print(f"--- Запуск визуализации со следующими параметрами ---")
+    print(f"min_cluster_size: {min_cluster_size}")
+    print(f"min_samples: {min_samples}")
+    print(f"umap_n_neighbors: {umap_n_neighbors}")
+    print(f"umap_min_dist: {umap_min_dist}")
+    print(f"----------------------------------------------------")
+
+
     if not os.path.exists(OUTPUT_DIR):
         os.makedirs(OUTPUT_DIR)
 
@@ -64,23 +68,22 @@ def visualize_hdbscan_clusters():
     # 2. UMAP transformation
     print("\n--- Этап 2: Уменьшение размерности с помощью UMAP ---")
     reducer = umap.UMAP(
-        n_neighbors=UMAP_N_NEIGHBORS,
-        min_dist=UMAP_MIN_DIST,
+        n_neighbors=umap_n_neighbors,
+        min_dist=umap_min_dist,
         n_components=UMAP_N_COMPONENTS,
         random_state=42,
     )
     print("Обучение UMAP и трансформация векторов...")
-    # It's often better to cluster on the lower-dimensional embedding
     embedding_2d = reducer.fit_transform(vectors)
     print("UMAP трансформация завершена.")
 
     # 3. HDBSCAN Clustering
     print("\n--- Этап 3: Кластеризация с помощью HDBSCAN ---")
     clusterer = hdbscan.HDBSCAN(
-        min_cluster_size=MIN_CLUSTER_SIZE,
-        min_samples=MIN_SAMPLES,
+        min_cluster_size=min_cluster_size,
+        min_samples=min_samples,
         metric='euclidean',
-        cluster_selection_method='eom' # Stands for Excess of Mass
+        cluster_selection_method='eom'  # Stands for Excess of Mass
     )
     clusterer.fit(embedding_2d)
     df['cluster'] = clusterer.labels_
@@ -94,35 +97,46 @@ def visualize_hdbscan_clusters():
     # 4. Visualization
     print("\n--- Этап 4: Создание визуализации ---")
     df['hover_text'] = df['text'].str.slice(0, 100) + '...'
-
-    # Convert cluster labels to string for discrete colors in plotly
-    # This ensures that noise points (-1) get their own color and are not treated as a numerical value
     df['cluster_str'] = df['cluster'].astype(str)
 
-    # Sort cluster labels for the legend
     sorted_cluster_labels = sorted(df['cluster'].unique())
     sorted_cluster_labels_str = [str(c) for c in sorted_cluster_labels]
+
+    title = (f'Визуализация HDBSCAN (mcs={min_cluster_size}, ms={min_samples}, '
+             f'nn={umap_n_neighbors}, md={umap_min_dist})')
 
     fig = px.scatter(
         df,
         x='x',
         y='y',
         color='cluster_str',
-        color_discrete_map={"-1": "grey"}, # Explicitly color noise points
+        color_discrete_map={"-1": "grey"},
         category_orders={"cluster_str": sorted_cluster_labels_str},
         hover_data={'x': False, 'y': False, 'cluster': True, 'post_id': True, 'hover_text': True},
-        title=f'Визуализация кластеров HDBSCAN (min_cluster_size={MIN_CLUSTER_SIZE})',
+        title=title,
         labels={'cluster_str': 'Кластер', 'hover_text': 'Текст'}
     )
     fig.update_traces(marker=dict(size=5, opacity=0.8))
-    fig.update_layout(legend_title_text='Кластеры', xaxis_title="UMAP 1", yaxis_title="UMAP 2", template="plotly_dark")
+    fig.update_layout(legend_title_text='Кластеры', xaxis_title="UMAP 1", yaxis_title="UMAP 2",
+                      template="plotly_dark")
 
-    fig.write_html(OUTPUT_FILE)
-    print(f"✅ Визуализация успешно сохранена: {os.path.abspath(OUTPUT_FILE)}")
+    fig.write_html(output_file)
+    print(f"✅ Визуализация успешно сохранена: {os.path.abspath(output_file)}")
 
     df_to_save = df[['post_id', 'text', 'cluster']].copy()
-    df_to_save.to_csv(CLUSTERS_OUTPUT_FILE, index=False, encoding='utf-8')
-    print(f"✅ Данные по кластерам сохранены: {os.path.abspath(CLUSTERS_OUTPUT_FILE)}")
+    df_to_save.to_csv(clusters_output_file, index=False, encoding='utf-8')
+    print(f"✅ Данные по кластерам сохранены: {os.path.abspath(clusters_output_file)}")
+
 
 if __name__ == "__main__":
-    visualize_hdbscan_clusters()
+    # Тест 1: Сбалансированные параметры (как в руководстве)
+    visualize_hdbscan_clusters(min_cluster_size=50, min_samples=5, umap_n_neighbors=15, umap_min_dist=0.1)
+
+    # Тест 2: Больше мелких кластеров
+    visualize_hdbscan_clusters(min_cluster_size=25, min_samples=5, umap_n_neighbors=15, umap_min_dist=0.1)
+
+    # Тест 3: Более "консервативная" кластеризация (больше шума)
+    visualize_hdbscan_clusters(min_cluster_size=50, min_samples=15, umap_n_neighbors=15, umap_min_dist=0.1)
+
+    # Тест 4: Более плотная визуализация кластеров
+    visualize_hdbscan_clusters(min_cluster_size=50, min_samples=5, umap_n_neighbors=15, umap_min_dist=0.0)
