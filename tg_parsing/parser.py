@@ -7,11 +7,13 @@ from tqdm import tqdm
 from .telegram import Message
 from .data import ParsedTelegramData
 
-DIR = 'C:\\Users\\stas2\\Code\\llm-workflows\\plain_data'
-INPUT_FILE = os.path.join(DIR, 'result.json')
-PARSED_FILE = os.path.join(DIR, 'parsed_telegram_data.json')
-FILTERED_FILE = os.path.join(DIR, 'filtered_telegram_data.json')
-OUTPUT_DIR = DIR
+PLAIN_DATA_DIR = 'F:\\tg-chat-exports\\test'
+INPUT_FILE = os.path.join(PLAIN_DATA_DIR, 'result.json')
+
+WORKING_DIR = './output'
+PARSED_FILE = os.path.join(WORKING_DIR, 'parsed_telegram_data.json')
+FILTERED_FILE = os.path.join(WORKING_DIR, 'filtered_telegram_data.json')
+OUTPUT_DIR = WORKING_DIR
 
 def count_json_items(filename: str, path: str) -> int:
     """
