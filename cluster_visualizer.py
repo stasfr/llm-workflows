@@ -127,7 +127,7 @@ def visualize_clusters():
     print("--- Этап 3: Создание визуализации и сохранение файлов ---")
 
     # Обрезаем текст для удобного отображения
-    df['hover_text'] = df['text'].str.slice(0, 300) + '...'
+    df['hover_text'] = df['text'].str.slice(0, 100) + '...'
 
     fig = px.scatter(
         df,
