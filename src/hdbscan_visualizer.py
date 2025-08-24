@@ -99,12 +99,17 @@ def visualize_hdbscan_clusters():
     # This ensures that noise points (-1) get their own color and are not treated as a numerical value
     df['cluster_str'] = df['cluster'].astype(str)
 
+    # Sort cluster labels for the legend
+    sorted_cluster_labels = sorted(df['cluster'].unique())
+    sorted_cluster_labels_str = [str(c) for c in sorted_cluster_labels]
+
     fig = px.scatter(
         df,
         x='x',
         y='y',
         color='cluster_str',
         color_discrete_map={"-1": "grey"}, # Explicitly color noise points
+        category_orders={"cluster_str": sorted_cluster_labels_str},
         hover_data={'x': False, 'y': False, 'cluster': True, 'post_id': True, 'hover_text': True},
         title=f'Визуализация кластеров HDBSCAN (min_cluster_size={MIN_CLUSTER_SIZE})',
         labels={'cluster_str': 'Кластер', 'hover_text': 'Текст'}
