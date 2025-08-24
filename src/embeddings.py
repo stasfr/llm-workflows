@@ -1,7 +1,7 @@
 import os
 import models
 from tqdm import tqdm
-from tg_parsing.parser import count_json_items, stream_filtered_tg_data
+from process_tg_data import count_json_items, stream_filtered_tg_data
 from pymilvus import connections, utility, FieldSchema, CollectionSchema, DataType, Collection
 
 WORKING_DIR = './output'
