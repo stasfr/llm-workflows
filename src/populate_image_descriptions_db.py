@@ -75,10 +75,10 @@ def process_images():
 
                 try:
                     with Image.open(image_path) as img:
-                        # Generate all three descriptions
+                        # Generate description
                         description, desc_usage, desc_time = image_describer.get_description(img)
-                        tag, tag_usage, tag_time = image_describer.get_tag(img)
-                        structured_description, struct_desc_usage, struct_desc_time = image_describer.get_structured_description(img)
+                        # tag, tag_usage, tag_time = image_describer.get_tag(img)
+                        # structured_description, struct_desc_usage, struct_desc_time = image_describer.get_structured_description(img)
 
                         # Insert into database
                         con.execute(
@@ -93,14 +93,14 @@ def process_images():
                                 item.get('date'),
                                 item.get('text'),
                                 description,
-                                tag,
-                                structured_description,
+                                None,
+                                None,
                                 json.dumps(desc_usage) if desc_usage else None,
-                                json.dumps(tag_usage) if tag_usage else None,
-                                json.dumps(struct_desc_usage) if struct_desc_usage else None,
+                                None,
+                                None,
                                 desc_time,
-                                tag_time,
-                                struct_desc_time
+                                None,
+                                None
                             )
                         )
                         processed_ids.add(post_id)
