@@ -4,6 +4,7 @@ from PIL import Image
 from tqdm import tqdm
 import models
 from process_tg_data import count_json_items, stream_filtered_tg_data
+import json
 
 PLAIN_DATA_DIR = 'F:\\tg-chat-exports\\jeldor'
 
@@ -23,7 +24,10 @@ def setup_database():
             text VARCHAR,
             photo_description VARCHAR,
             photo_tag VARCHAR,
-            photo_structured_description VARCHAR
+            photo_structured_description VARCHAR,
+            description_usage VARCHAR,
+            tag_usage VARCHAR,
+            structured_description_usage VARCHAR
         );
     """)
     return con
@@ -69,20 +73,27 @@ def process_images():
                 try:
                     with Image.open(image_path) as img:
                         # Generate all three descriptions
-                        description = image_describer.get_description(img)
-                        tag = image_describer.get_tag(img)
-                        structured_description = image_describer.get_structured_description(img)
+                        description, desc_usage = image_describer.get_description(img)
+                        tag, tag_usage = image_describer.get_tag(img)
+                        structured_description, struct_desc_usage = image_describer.get_structured_description(img)
 
                         # Insert into database
                         con.execute(
-                            f"INSERT INTO {DB_TABLE_NAME} VALUES (?, ?, ?, ?, ?, ?)",
+                            f"""INSERT INTO {DB_TABLE_NAME} (
+                                post_id, date, text,
+                                photo_description, photo_tag, photo_structured_description,
+                                description_usage, tag_usage, structured_description_usage
+                            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                             (
                                 post_id,
                                 item.get('date'),
                                 item.get('text'),
                                 description,
                                 tag,
-                                structured_description
+                                structured_description,
+                                json.dumps(desc_usage) if desc_usage else None,
+                                json.dumps(tag_usage) if tag_usage else None,
+                                json.dumps(struct_desc_usage) if struct_desc_usage else None
                             )
                         )
                         processed_ids.add(post_id)

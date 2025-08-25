@@ -2,6 +2,7 @@ import base64
 import io
 from openai import OpenAI
 from PIL import Image
+from typing import Tuple, Dict, Optional
 
 class ImageDescription:
     """
@@ -24,7 +25,7 @@ class ImageDescription:
         image.save(buffered, format="JPEG")
         return base64.b64encode(buffered.getvalue()).decode('utf-8')
 
-    def get_description(self, image: Image.Image) -> str:
+    def get_description(self, image: Image.Image) -> Tuple[str, Optional[Dict]]:
         """
         Generates a description for a given image.
         """
@@ -69,12 +70,12 @@ class ImageDescription:
                 max_tokens=300,
             )
             if response.choices and response.choices[0].message.content:
-                return response.choices[0].message.content
-            return "Error: No response generated."
+                return response.choices[0].message.content, response.usage.model_dump() if response.usage else None
+            return "Error: No response generated.", None
         except Exception as e:
-            return f"Error: An exception occurred: {e}"
+            return f"Error: An exception occurred: {e}", None
 
-    def get_tag(self, image: Image.Image) -> str:
+    def get_tag(self, image: Image.Image) -> Tuple[str, Optional[Dict]]:
         """
         Generates tags for a given image.
         """
@@ -118,12 +119,12 @@ class ImageDescription:
                 max_tokens=50, # Tags are usually shorter
             )
             if response.choices and response.choices[0].message.content:
-                return response.choices[0].message.content
-            return "Error: No response generated."
+                return response.choices[0].message.content, response.usage.model_dump() if response.usage else None
+            return "Error: No response generated.", None
         except Exception as e:
-            return f"Error: An exception occurred: {e}"
+            return f"Error: An exception occurred: {e}", None
 
-    def get_structured_description(self, image: Image.Image) -> str:
+    def get_structured_description(self, image: Image.Image) -> Tuple[str, Optional[Dict]]:
         """
         Generates a structured description for a given image in JSON format.
         """
@@ -178,7 +179,7 @@ class ImageDescription:
                 max_tokens=500,
             )
             if response.choices and response.choices[0].message.content:
-                return response.choices[0].message.content
-            return "Error: No response generated."
+                return response.choices[0].message.content, response.usage.model_dump() if response.usage else None
+            return "Error: No response generated.", None
         except Exception as e:
-            return f"Error: An exception occurred: {e}"
+            return f"Error: An exception occurred: {e}", None
