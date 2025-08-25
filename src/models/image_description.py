@@ -122,3 +122,64 @@ class ImageDescription:
             return "Error: No response generated."
         except Exception as e:
             return f"Error: An exception occurred: {e}"
+
+    def get_structured_description(self, image: Image.Image) -> str:
+        """
+        Generates a structured description for a given image in JSON format.
+        """
+        system_prompt = '''
+        Твоя задача — извлечь структурированную информацию из изображения и вернуть ее в формате JSON.
+
+        Правила:
+        1.  Проанализируй изображение и заполни значения для следующих ключей: "main_subject", "action", "setting", "secondary_objects", "composition".
+        2.  Ответ должен быть строго в формате JSON. Не добавляй никаких пояснений или приветствий до или после JSON-объекта.
+        3.  Описывай только объективные факты.
+        4.  Игнорируй любые логотипы и надписи.
+        5.  Все значения в JSON должны быть на русском языке.
+
+        Ключи для заполнения:
+        - main_subject: Кто или что является главным объектом на изображении?
+        - action: Какое основное действие происходит? (Если нет действия, укажи "статика")
+        - setting: Где происходит действие (окружение, фон)?
+        - secondary_objects: Какие значимые второстепенные объекты присутствуют? (список строкой)
+        - composition: Краткое описание композиции (например: крупный план, панорама, портрет, вид сверху).
+
+        Пример правильного ответа:
+        {
+          "main_subject": "Рыжая собака породы корги",
+          "action": "лежит",
+          "setting": "зеленая трава в парке",
+          "secondary_objects": "деревья на фоне, желтый мяч",
+          "composition": "крупный план"
+        }
+        '''
+        base64_image = self._image_to_base64(image)
+
+        try:
+            response = self.client.chat.completions.create(
+                model=self.model_name,
+                messages=[
+                    {
+                        "role": "system",
+                        "content": system_prompt,
+                    },
+                    {
+                        "role": "user",
+                        "content": [
+                            {
+                                "type": "image_url",
+                                "image_url": {
+                                    "url": f"data:image/jpeg;base64,{base64_image}"
+                                },
+                            },
+                        ],
+                    },
+                ],
+                response_format={"type": "json_object"},
+                max_tokens=500,
+            )
+            if response.choices and response.choices[0].message.content:
+                return response.choices[0].message.content
+            return "Error: No response generated."
+        except Exception as e:
+            return f"Error: An exception occurred: {e}"
