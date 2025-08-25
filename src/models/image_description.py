@@ -1,5 +1,6 @@
 import base64
 import io
+import time
 from openai import OpenAI
 from PIL import Image
 from typing import Tuple, Dict, Optional
@@ -25,7 +26,7 @@ class ImageDescription:
         image.save(buffered, format="JPEG")
         return base64.b64encode(buffered.getvalue()).decode('utf-8')
 
-    def get_description(self, image: Image.Image) -> Tuple[str, Optional[Dict]]:
+    def get_description(self, image: Image.Image) -> Tuple[str, Optional[Dict], float]:
         """
         Generates a description for a given image.
         """
@@ -47,6 +48,7 @@ class ImageDescription:
         base64_image = self._image_to_base64(image)
 
         try:
+            start_time = time.time()
             response = self.client.chat.completions.create(
                 model=self.model_name,
                 messages=[
@@ -69,13 +71,15 @@ class ImageDescription:
                 temperature=1,
                 max_tokens=300,
             )
+            end_time = time.time()
+            duration = end_time - start_time
             if response.choices and response.choices[0].message.content:
-                return response.choices[0].message.content, response.usage.model_dump() if response.usage else None
-            return "Error: No response generated.", None
+                return response.choices[0].message.content, response.usage.model_dump() if response.usage else None, duration
+            return "Error: No response generated.", None, duration
         except Exception as e:
-            return f"Error: An exception occurred: {e}", None
+            return f"Error: An exception occurred: {e}", None, 0.0
 
-    def get_tag(self, image: Image.Image) -> Tuple[str, Optional[Dict]]:
+    def get_tag(self, image: Image.Image) -> Tuple[str, Optional[Dict], float]:
         """
         Generates tags for a given image.
         """
@@ -97,6 +101,7 @@ class ImageDescription:
         base64_image = self._image_to_base64(image)
 
         try:
+            start_time = time.time()
             response = self.client.chat.completions.create(
                 model=self.model_name,
                 messages=[
@@ -118,13 +123,15 @@ class ImageDescription:
                 ],
                 max_tokens=50, # Tags are usually shorter
             )
+            end_time = time.time()
+            duration = end_time - start_time
             if response.choices and response.choices[0].message.content:
-                return response.choices[0].message.content, response.usage.model_dump() if response.usage else None
-            return "Error: No response generated.", None
+                return response.choices[0].message.content, response.usage.model_dump() if response.usage else None, duration
+            return "Error: No response generated.", None, duration
         except Exception as e:
-            return f"Error: An exception occurred: {e}", None
+            return f"Error: An exception occurred: {e}", None, 0.0
 
-    def get_structured_description(self, image: Image.Image) -> Tuple[str, Optional[Dict]]:
+    def get_structured_description(self, image: Image.Image) -> Tuple[str, Optional[Dict], float]:
         """
         Generates a structured description for a given image in JSON format.
         """
@@ -157,6 +164,7 @@ class ImageDescription:
         base64_image = self._image_to_base64(image)
 
         try:
+            start_time = time.time()
             response = self.client.chat.completions.create(
                 model=self.model_name,
                 messages=[
@@ -178,8 +186,10 @@ class ImageDescription:
                 ],
                 max_tokens=500,
             )
+            end_time = time.time()
+            duration = end_time - start_time
             if response.choices and response.choices[0].message.content:
-                return response.choices[0].message.content, response.usage.model_dump() if response.usage else None
-            return "Error: No response generated.", None
+                return response.choices[0].message.content, response.usage.model_dump() if response.usage else None, duration
+            return "Error: No response generated.", None, duration
         except Exception as e:
-            return f"Error: An exception occurred: {e}", None
+            return f"Error: An exception occurred: {e}", None, 0.0

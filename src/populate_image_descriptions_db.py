@@ -27,7 +27,10 @@ def setup_database():
             photo_structured_description VARCHAR,
             description_usage VARCHAR,
             tag_usage VARCHAR,
-            structured_description_usage VARCHAR
+            structured_description_usage VARCHAR,
+            description_time FLOAT,
+            tag_time FLOAT,
+            structured_description_time FLOAT
         );
     """)
     return con
@@ -57,6 +60,9 @@ def process_images():
 
     with tqdm(total=total_items, desc="Processing posts") as pbar:
         for item in data_stream:
+            if len(processed_ids) > 10:
+                break
+
             pbar.update(1)
             post_id = item.get('id')
 
@@ -73,17 +79,18 @@ def process_images():
                 try:
                     with Image.open(image_path) as img:
                         # Generate all three descriptions
-                        description, desc_usage = image_describer.get_description(img)
-                        tag, tag_usage = image_describer.get_tag(img)
-                        structured_description, struct_desc_usage = image_describer.get_structured_description(img)
+                        description, desc_usage, desc_time = image_describer.get_description(img)
+                        tag, tag_usage, tag_time = image_describer.get_tag(img)
+                        structured_description, struct_desc_usage, struct_desc_time = image_describer.get_structured_description(img)
 
                         # Insert into database
                         con.execute(
                             f"""INSERT INTO {DB_TABLE_NAME} (
                                 post_id, date, text,
                                 photo_description, photo_tag, photo_structured_description,
-                                description_usage, tag_usage, structured_description_usage
-                            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                                description_usage, tag_usage, structured_description_usage,
+                                description_time, tag_time, structured_description_time
+                            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                             (
                                 post_id,
                                 item.get('date'),
@@ -93,7 +100,10 @@ def process_images():
                                 structured_description,
                                 json.dumps(desc_usage) if desc_usage else None,
                                 json.dumps(tag_usage) if tag_usage else None,
-                                json.dumps(struct_desc_usage) if struct_desc_usage else None
+                                json.dumps(struct_desc_usage) if struct_desc_usage else None,
+                                desc_time,
+                                tag_time,
+                                struct_desc_time
                             )
                         )
                         processed_ids.add(post_id)
