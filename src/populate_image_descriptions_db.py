@@ -6,7 +6,6 @@ import models
 from process_tg_data import count_json_items, stream_filtered_tg_data
 
 PLAIN_DATA_DIR = 'F:\\tg-chat-exports\\jeldor'
-PHOTOS_DIR = os.path.join(PLAIN_DATA_DIR, 'photos')
 
 WORKING_DIR = './output'
 FILTERED_FILE = os.path.join(WORKING_DIR, 'filtered_telegram_data.json')
@@ -40,7 +39,7 @@ def process_images():
     """
     print("Initializing image description model...")
 
-    image_describer = models.ImageDescription(model_name="google/gemma-3-4b-it")
+    image_describer = models.ImageDescription(model_name="google/gemma-3-4b")
 
     print("Setting up database...")
     con = setup_database()
@@ -61,7 +60,7 @@ def process_images():
                 continue
 
             if 'photo' in item and item['photo']:
-                image_path = os.path.join(PHOTOS_DIR, item['photo'])
+                image_path = os.path.join(PLAIN_DATA_DIR, item['photo'])
 
                 if not os.path.exists(image_path):
                     # pbar.set_postfix_str(f"Photo not found: {item['photo']}", refresh=True)
