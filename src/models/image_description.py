@@ -175,7 +175,6 @@ class ImageDescription:
                         ],
                     },
                 ],
-                response_format={"type": "json_object"},
                 max_tokens=500,
             )
             if response.choices and response.choices[0].message.content:
