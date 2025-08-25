@@ -60,9 +60,6 @@ def process_images():
 
     with tqdm(total=total_items, desc="Processing posts") as pbar:
         for item in data_stream:
-            if len(processed_ids) > 10:
-                break
-
             pbar.update(1)
             post_id = item.get('id')
 
