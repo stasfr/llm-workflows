@@ -9,7 +9,7 @@ from tqdm import tqdm
 
 # Constants
 MILVUS_ADDRESS = "http://localhost:19530"
-COLLECTION_NAME = "filtered_jeldor_cosine_flat"
+COLLECTION_NAME = "photo_jeldor_cosine_flat"
 VECTOR_DIMENSION = 1024
 BATCH_SIZE = 1000  # Batch size for fetching data from Milvus
 UMAP_N_COMPONENTS = 2
@@ -47,19 +47,19 @@ def visualize_hdbscan_clusters(min_cluster_size, min_samples, umap_n_neighbors, 
     print("Внимание: для работы HDBSCAN все векторы будут загружены в память.")
 
     all_data = []
+    iterator = collection.query_iterator(
+        output_fields=["post_id", "text", "vector"],
+        expr="post_id > 0",
+        batch_size=BATCH_SIZE,
+        consistency_level="Eventually"
+    )
     with tqdm(total=num_entities, desc="Загрузка данных") as pbar:
-        for offset in range(0, num_entities, BATCH_SIZE):
-            result = collection.query(
-                output_fields=["post_id", "text", "vector"],
-                limit=BATCH_SIZE,
-                offset=offset,
-                expr="post_id > 0",
-                consistency_level="Eventually"
-            )
-            if not result:
+        while True:
+            result_batch = iterator.next()
+            if not result_batch:
                 break
-            all_data.extend(result)
-            pbar.update(len(result))
+            all_data.extend(result_batch)
+            pbar.update(len(result_batch))
 
     df = pd.DataFrame(all_data)
     vectors = np.array(df['vector'].tolist())
