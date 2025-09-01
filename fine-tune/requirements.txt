@@ -1,6 +1,17 @@
+# It's recommended to install unsloth from github to get the latest updates and patches
 unsloth[colab-new]@git+https://github.com/unslothai/unsloth.git
+
+# Pin transformers to a version compatible with the latest unsloth
+transformers==4.51.3
+
+# Other dependencies
 trl
-transformers
 accelerate
 bitsandbytes
 datasets
+peft
+packaging
+ninja
+einops
+flash-attn
+xformers
