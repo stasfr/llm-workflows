@@ -1,4 +1,3 @@
-
 import torch
 from unsloth import FastLanguageModel
 from datasets import load_dataset
@@ -31,7 +30,7 @@ model = FastLanguageModel.get_peft_model(
     lora_alpha = 16,
     lora_dropout = 0,
     bias = "none",
-    use_gradient_checkpointing = True,
+    use_gradient_checkpointing = False,
     random_state = 3407,
     use_rslora = False,
     loftq_config = None,
@@ -73,8 +72,8 @@ trainer = SFTTrainer(
     dataset_num_proc = 2,
     packing = False,
     args = TrainingArguments(
-        per_device_train_batch_size = 2,
-        gradient_accumulation_steps = 4,
+        per_device_train_batch_size = 8,
+        gradient_accumulation_steps = 1,
         warmup_steps = 5,
         num_train_epochs = 2,
         learning_rate = 2e-4,
