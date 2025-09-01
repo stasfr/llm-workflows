@@ -1,11 +1,12 @@
 import torch
+import os
 from unsloth import FastLanguageModel
 from datasets import load_dataset
 from trl import SFTTrainer
 from transformers import TrainingArguments
 from huggingface_hub import login
 
-HF_TOKEN = ""
+HF_TOKEN = os.getenv("HF_TOKEN")
 
 login(token=HF_TOKEN)
 
