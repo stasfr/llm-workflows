@@ -40,7 +40,7 @@ model = FastLanguageModel.get_peft_model(
 # 3. Подготовка данных из локального JSON
 # Шаблон промпта для модели
 prompt_template = """### Instruction:
-Provide a response to the following text.
+Определи, является ли следующий текст рекламой. Ответь "1", если это реклама, и "0", если нет.
 
 ### Input:
 {}
@@ -76,7 +76,7 @@ trainer = SFTTrainer(
         per_device_train_batch_size = 2,
         gradient_accumulation_steps = 4,
         warmup_steps = 5,
-        max_steps = 60,
+        num_train_epochs = 2,
         learning_rate = 2e-4,
         fp16 = not torch.cuda.is_bf16_supported(),
         bf16 = torch.cuda.is_bf16_supported(),
