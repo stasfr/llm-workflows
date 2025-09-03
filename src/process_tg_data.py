@@ -6,6 +6,7 @@ from collections import Counter
 from tqdm import tqdm
 from tg_parsing.telegram import Message
 from tg_parsing.data import ParsedTelegramData
+from pydantic import ValidationError
 import consts
 
 PLAIN_DATA_DIR = 'F:\\tg-chat-exports\\jeldor'
@@ -26,9 +27,10 @@ def count_json_items(filename: str, path: str) -> int:
     except (FileNotFoundError, json.JSONDecodeError):
         return 0
 
-def stream_plain_tg_data(filename: str) -> Generator[Message, None, None]:
+def stream_plain_tg_data(filename: str) -> Generator[dict, None, None]:
     """
     Генератор для потокового чтения данных из JSON-файла с помощью ijson.
+    Yields dictionaries.
     """
     try:
         with open(filename, 'r', encoding='utf-8') as f:
@@ -61,25 +63,31 @@ def parse_raw_telegram_data() -> None:
         with tqdm(total=total_messages, desc="Parsing Telegram Data") as pbar:
             for item in plain_tg_data:
                 if item.get('type') == 'message':
-                    text_entities = item.get('text_entities', [])
-                    photo = item.get('photo')
+                    try:
+                        message = Message.model_validate(item)
 
-                    if text_entities or photo:
-                        text = "".join(entity.get('text', '') for entity in text_entities)
-                        parsed_data: ParsedTelegramData = {
-                            'id': item.get('id'),
-                            'date': item.get('date'),
-                        }
-                        if photo:
-                            parsed_data['photo'] = photo
-                        if text:
-                            parsed_data['text'] = text
-                        if text or parsed_data.get('photo'):
-                            result.append(parsed_data)
+                        if message.text_entities or message.photo:
+                            text = "".join(entity.text for entity in message.text_entities)
+
+                            parsed_data = ParsedTelegramData(
+                                id=message.id,
+                                date=message.date,
+                            )
+                            if message.photo:
+                                parsed_data.photo = message.photo
+                            if text:
+                                parsed_data.text = text
+
+                            if parsed_data.text or parsed_data.photo:
+                                result.append(parsed_data)
+                    except ValidationError as e:
+                        # Can be noisy, uncomment for debugging
+                        # print(f"Skipping message id {item.get('id')} due to validation error: {e}")
+                        pass
                 pbar.update(1)
 
         with open(PARSED_FILE, 'w', encoding='utf-8') as f:
-            json.dump(result, f, ensure_ascii=False, indent=2)
+            json.dump([item.model_dump(exclude_none=True) for item in result], f, ensure_ascii=False, indent=2)
 
     except Exception as e:
         print(f"Stream processing error: {e}")
@@ -91,7 +99,9 @@ def stream_parsed_tg_data(filename: str) -> Generator[ParsedTelegramData, None, 
     """
     try:
         with open(filename, 'r', encoding='utf-8') as f:
-            yield from ijson.items(f, 'item')
+            # Use model_validate to yield Pydantic objects
+            for item in ijson.items(f, 'item'):
+                yield ParsedTelegramData.model_validate(item)
     except FileNotFoundError:
         print(f"Ошибка: Файл не найден по пути {filename}")
         raise
@@ -118,12 +128,12 @@ def filter_parsed_telegram_data(
 
         with tqdm(total=total_items, desc="Filtering Parsed Data") as pbar:
             for item in items:
-                if item.get('id') in garbage_posts_list:
+                if item.id in garbage_posts_list:
                     pbar.update(1)
                     continue
 
-                if 'text' in item:
-                    clean_str = item['text']
+                if item.text:
+                    clean_str = item.text
                     for garbage in garbage_phrases_list:
                         clean_str = clean_str.replace(garbage, '')
 
@@ -136,18 +146,14 @@ def filter_parsed_telegram_data(
                         entry_key = ' '.join(entry_slice)
                         data_base_map[entry_key] += 1
 
-                    result.append({
-                        **item,
-                        'text': clean_str,
-                    })
-                elif 'photo' in item:
-                    result.append({
-                        **item,
-                    })
+                    item.text = clean_str
+                    result.append(item)
+                elif item.photo:
+                    result.append(item)
                 pbar.update(1)
 
         with open(FILTERED_FILE, 'w', encoding='utf-8') as f:
-            json.dump(result, f, ensure_ascii=False, indent=2)
+            json.dump([item.model_dump(exclude_none=True) for item in result], f, ensure_ascii=False, indent=2)
 
     except Exception as e:
         print(f"Stream processing error: {e}")
@@ -161,7 +167,8 @@ def filter_parsed_telegram_data(
 def stream_filtered_tg_data(filename: str) -> Generator[ParsedTelegramData, None, None]:
     try:
         with open(filename, 'r', encoding='utf-8') as f:
-            yield from ijson.items(f, 'item')
+            for item in ijson.items(f, 'item'):
+                yield ParsedTelegramData.model_validate(item)
     except FileNotFoundError:
         print(f"Ошибка: Файл не найден по пути {filename}")
         raise

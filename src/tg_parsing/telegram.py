@@ -1,5 +1,7 @@
-from typing import TypedDict, List, Union, Literal, NotRequired
+from __future__ import annotations
+from typing import List, Union, Literal, Optional
 from enum import Enum
+from pydantic import BaseModel, Field
 
 MimeType = Literal[
     'application/pdf',
@@ -25,12 +27,12 @@ MediaType = Literal[
     'voice_message'
 ]
 
-class Answer(TypedDict):
+class Answer(BaseModel):
     text: str
     voters: int
     chosen: bool
 
-class Poll(TypedDict):
+class Poll(BaseModel):
     question: str
     closed: bool
     total_voters: int
@@ -40,11 +42,11 @@ class ReactionType(str, Enum):
     Emoji = 'emoji'
     Paid = 'paid'
 
-class PaidReaction(TypedDict):
+class PaidReaction(BaseModel):
     type: Literal[ReactionType.Paid]
     count: int
 
-class EmojiReaction(TypedDict):
+class EmojiReaction(BaseModel):
     type: Literal[ReactionType.Emoji]
     count: int
     emoji: str
@@ -68,14 +70,14 @@ TextEntityType = Literal[
     'hashtag'
 ]
 
-class TextEntity(TypedDict):
+class TextEntity(BaseModel):
     type: TextEntityType
     text: str
-    href: NotRequired[str]
-    document_id: NotRequired[str]
-    collapsed: NotRequired[bool]
+    href: Optional[str] = None
+    document_id: Optional[str] = None
+    collapsed: Optional[bool] = None
 
-class MessageBase(TypedDict):
+class MessageBase(BaseModel):
     id: int
     date: str # 2021-10-04T21:33:22
     date_unixtime: str
@@ -88,33 +90,33 @@ class Service(MessageBase):
     actor_id: str
     action: MessageAction
     title: str
-    message_id: NotRequired[int]
+    message_id: Optional[int] = None
 
 class Message(MessageBase):
     type: Literal[MessageType.Message]
     from_: str
     from_id: str
-    edited: NotRequired[str]
-    edited_unixtime: NotRequired[str]
-    photo: NotRequired[str]
-    photo_file_size: NotRequired[int]
-    width: NotRequired[int]
-    height: NotRequired[int]
-    reactions: NotRequired[List[Union[EmojiReaction, PaidReaction]]]
-    poll: NotRequired[Poll]
-    file: NotRequired[str]
-    file_name: NotRequired[str]
-    file_size: NotRequired[int]
-    mime_type: NotRequired[MimeType]
-    thumbnail: NotRequired[str]
-    thumbnail_file_size: NotRequired[int]
-    duration_seconds: NotRequired[int]
-    reply_to_message_id: NotRequired[int]
-    forwarded_from: NotRequired[str]
-    media_spoiler: NotRequired[bool]
-    media_type: NotRequired[MediaType]
+    edited: Optional[str] = None
+    edited_unixtime: Optional[str] = None
+    photo: Optional[str] = None
+    photo_file_size: Optional[int] = None
+    width: Optional[int] = None
+    height: Optional[int] = None
+    reactions: Optional[List[Union[EmojiReaction, PaidReaction]]] = None
+    poll: Optional[Poll] = None
+    file: Optional[str] = None
+    file_name: Optional[str] = None
+    file_size: Optional[int] = None
+    mime_type: Optional[MimeType] = None
+    thumbnail: Optional[str] = None
+    thumbnail_file_size: Optional[int] = None
+    duration_seconds: Optional[int] = None
+    reply_to_message_id: Optional[int] = None
+    forwarded_from: Optional[str] = None
+    media_spoiler: Optional[bool] = None
+    media_type: Optional[MediaType] = None
 
-class TgData(TypedDict):
+class TgData(BaseModel):
     name: str
     type: str
     id: int

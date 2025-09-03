@@ -1,7 +1,8 @@
-from typing import TypedDict, NotRequired
+from pydantic import BaseModel
+from typing import Optional
 
-class ParsedTelegramData(TypedDict):
+class ParsedTelegramData(BaseModel):
     id: int
     date: str
-    text: NotRequired[str]
-    photo: NotRequired[str]
+    text: Optional[str] = None
+    photo: Optional[str] = None
