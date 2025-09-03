@@ -39,6 +39,9 @@ DB_HOST = get_env_var("DB_HOST")
 DB_PORT = get_env_var("DB_PORT")
 DB_NAME = get_env_var("DB_NAME")
 
+MILVUS_HOST = get_env_var("MILVUS_HOST")
+MILVUS_PORT = get_env_var("MILVUS_PORT")
+
 TELEGRAM_BOT_API = get_env_var("TELEGRAM_BOT_API")
 TELEGRAM_CHAT_IDS = get_env_var("TELEGRAM_CHAT_IDS")
 
