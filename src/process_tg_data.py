@@ -4,8 +4,8 @@ import ijson
 from typing import Generator, List, Tuple
 from collections import Counter
 from tqdm import tqdm
-from tg_parsing.telegram import Message
-from tg_parsing.data import ParsedTelegramData
+from types.telegram import Message
+from types.data import ParsedTelegramData
 from pydantic import ValidationError
 import consts
 

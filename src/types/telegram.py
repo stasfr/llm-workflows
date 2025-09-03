@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import List, Union, Literal, Optional
 from enum import Enum
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 MimeType = Literal[
     'application/pdf',
