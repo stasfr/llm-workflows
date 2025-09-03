@@ -54,8 +54,6 @@ def run_inference(input_text):
     inputs = tokenizer([prompt], return_tensors="pt").to("cuda")
 
     print("---")
-    print(f"Input text:\n{input_text}")
-    print("\nGenerating response...")
     _ = model.generate(**inputs, streamer=text_streamer, max_new_tokens=5) # 5 токенов достаточно для "1" или "0"
     print("\n")
 
