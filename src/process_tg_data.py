@@ -8,9 +8,9 @@ from types.telegram import Message
 from types.data import ParsedTelegramData
 from pydantic import ValidationError
 import consts
+from config import STORAGE_FOLDER
 
-PLAIN_DATA_DIR = 'F:\\tg-chat-exports\\jeldor'
-INPUT_FILE = os.path.join(PLAIN_DATA_DIR, 'result.json')
+INPUT_FILE = os.path.join(STORAGE_FOLDER, 'result.json')
 
 WORKING_DIR = './output'
 PARSED_FILE = os.path.join(WORKING_DIR, 'parsed_telegram_data.json')
