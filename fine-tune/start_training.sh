@@ -15,3 +15,6 @@ HF_TOKEN='' python3 run_inference.py
 
 
 tmux attach -t training
+tmux kill-session -t training
+
+set -g mouse on
