@@ -1,11 +1,10 @@
-import torch
 from unsloth import FastLanguageModel
 from transformers import TextStreamer
 import os
 
 # --- Конфигурация ---
 # Путь к сохраненным LoRA адаптерам
-LORA_MODEL_PATH = "../output/fine-tune/v2/lora_model"
+LORA_MODEL_PATH = "./lora_model"
 
 # --- 1. Загрузка модели и токенизатора ---
 max_seq_length = 2048
@@ -29,10 +28,7 @@ if not os.path.exists(LORA_MODEL_PATH):
         f"Убедитесь, что путь указан верно относительно расположения скрипта."
     )
 
-model = FastLanguageModel.from_pretrained(
-    model=model,
-    model_name=LORA_MODEL_PATH,
-)
+model.load_adapter(LORA_MODEL_PATH)
 print("LoRA adapters loaded successfully.")
 
 # --- 3. Подготовка к инференсу ---
