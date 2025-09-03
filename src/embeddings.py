@@ -1,5 +1,5 @@
 import os
-import models
+import llm
 from tqdm import tqdm
 from process_tg_data import count_json_items, stream_filtered_tg_data
 from pymilvus import connections, utility, FieldSchema, CollectionSchema, DataType, Collection
@@ -60,7 +60,7 @@ def main():
         collection.load()
 
         print('Loading models')
-        text_embedder = models.OpenAIEmbedder(model_name="intfloat/multilingual-e5-large-instruct")
+        text_embedder = llm.OpenAIEmbedder(model_name="intfloat/multilingual-e5-large-instruct")
 
         total_items = count_json_items(FILTERED_FILE, 'item')
         filtered_tg_data = stream_filtered_tg_data(FILTERED_FILE)

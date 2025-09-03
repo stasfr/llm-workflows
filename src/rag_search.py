@@ -1,4 +1,4 @@
-import models
+import llm
 from pymilvus import connections, Collection
 
 # Milvus settings from embeddings.py
@@ -81,7 +81,7 @@ def main():
 
     # 3. Initialize embedder
     print("Loading text embedder model...")
-    text_embedder = models.OpenAIEmbedder(model_name="intfloat/multilingual-e5-large-instruct")
+    text_embedder = llm.OpenAIEmbedder(model_name="intfloat/multilingual-e5-large-instruct")
     print("Model loaded.")
 
     # 4. Example Query

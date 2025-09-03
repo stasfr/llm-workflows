@@ -3,7 +3,7 @@ import psycopg
 from psycopg import sql
 from PIL import Image
 from tqdm import tqdm
-import models
+import llm
 from process_tg_data import count_json_items, stream_filtered_tg_data
 import json
 
@@ -51,7 +51,7 @@ def process_images():
     and stores them in a PostgreSQL database.
     """
     print("Initializing image description model...")
-    image_describer = models.ImageDescription(model_name="google/gemma-3-4b")
+    image_describer = llm.ImageDescription(model_name="google/gemma-3-4b")
 
     print("Setting up database...")
     try:
