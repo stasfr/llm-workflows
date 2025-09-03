@@ -18,10 +18,36 @@ def visualize_hdbscan_clusters(
     min_samples: int,
     umap_n_neighbors: int,
     umap_min_dist: float,
-    umap_n_components: int,
+    umap_n_components: int = 2,
     batch_size: int = 1000,
     progress_callback: Optional[Callable[[int, int], None]] = None,
 ) -> None:
+    """
+    Визуализирует кластеры, полученные с помощью HDBSCAN, и сохраняет результаты.
+
+    Args:
+        collection_name (str): Имя коллекции в Milvus, из которой извлекаются данные.
+        project_name (str): Имя проекта, используемое для организации хранения файлов.
+        project_snapshot (str): Снимок/версия проекта для дальнейшей организации файлов.
+        min_cluster_size (int): Минимальный размер кластера для HDBSCAN. Определяет минимальное
+                                количество точек, которое может считаться кластером.
+        min_samples (int): Параметр min_samples для HDBSCAN. Определяет, сколько соседей
+                           должна иметь точка, чтобы считаться ядром кластера. Более высокие
+                           значения делают кластеризацию более консервативной.
+        umap_n_neighbors (int): Количество соседей для UMAP. Влияет на локальную и глобальную
+                                структуру вложения. Большие значения учитывают больше глобальной
+                                структуры.
+        umap_min_dist (float): Минимальное расстояние между точками в UMAP. Контролирует,
+                               насколько плотно UMAP может упаковывать точки. Низкие значения
+                               оптимизируют локальную структуру, высокие - глобальную.
+        umap_n_components (int): Количество компонент (размерность) для вложения UMAP.
+                                 Обычно 2 для 2D-визуализации.
+        batch_size (int, optional): Размер пакета для извлечения данных из Milvus.
+                                    Defaults to 1000.
+        progress_callback (Optional[Callable[[int, int], None]], optional):
+            Обратный вызов для отслеживания прогресса. Принимает текущий шаг и общее
+            количество шагов. Defaults to None.
+    """
     total_stages = 4
 
     MILVUS_ADDRESS = f"http://{MILVUS_HOST}:{MILVUS_PORT}"

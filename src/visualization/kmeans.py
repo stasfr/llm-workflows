@@ -19,6 +19,24 @@ def visualize_clusters(
     batch_size: int = 100,
     progress_callback: Optional[Callable[[int, int], None]] = None,
 ):
+    """
+    Выполняет кластеризацию K-Means, уменьшает размерность с помощью UMAP и визуализирует результаты.
+
+    Args:
+        collection_name (str): Имя коллекции в Milvus для извлечения векторов.
+        project_name (str): Имя проекта для структурирования путей вывода.
+        project_snapshot (str): Снимок/версия проекта для дальнейшей организации файлов.
+        umap_sample_size (int, optional): Количество образцов для обучения UMAP.
+                                          Если в коллекции меньше данных, используется
+                                          фактическое количество. Defaults to 20000.
+        n_clusters (int, optional): Количество кластеров для K-Means. Defaults to 64.
+        batch_size (int, optional): Размер пакета для обработки данных. Используется как для
+                                    извлечения данных из Milvus, так и для MiniBatchKMeans.
+                                    Defaults to 100.
+        progress_callback (Optional[Callable[[int, int], None]], optional):
+            Обратный вызов для отслеживания прогресса. Принимает текущий шаг и общее
+            количество шагов. Defaults to None.
+    """
     total_stages = 3
 
     MILVUS_ADDRESS = f"http://{MILVUS_HOST}:{MILVUS_PORT}"
