@@ -18,38 +18,50 @@ def init():
     try:
         with psycopg.connect(POSTGRES_CONN_STRING) as con:
             with con.cursor() as cur:
-                print("Creating 'image_descriptions' table...")
-                cur.execute(sql.SQL("""
-                    CREATE TABLE IF NOT EXISTS image_descriptions (
-                        post_id INTEGER PRIMARY KEY,
-                        date TIMESTAMP,
+                cur.execute("""
+                    CREATE TABLE IF NOT EXISTS posts (
+                        id UUID PRIMARY KEY,
+                        post_id INTEGER UNIQUE NOT NULL,
+                        date VARCHAR(100),
+                        edited VARCHAR(100),
+                        from_id VARCHAR(100) NOT NULL,
                         text TEXT,
-                        photo_description TEXT,
-                        photo_tag TEXT,
-                        photo_structured_description TEXT,
+                        reactions JSONB
+                    );
+                """)
+
+                cur.execute("""
+                    CREATE TABLE IF NOT EXISTS media (
+                        id UUID PRIMARY KEY,
+                        name TEXT NOT NULL,
+                        post_id INTEGER NOT NULL,
+                        mime_type TEXT NOT NULL,
+                        CONSTRAINT fk_post
+                            FOREIGN KEY(post_id)
+                            REFERENCES posts(post_id)
+                    );
+                """)
+
+                cur.execute("""
+                    CREATE TABLE IF NOT EXISTS media_data (
+                        id UUID PRIMARY KEY,
+                        media_id UUID NOT NULL,
+                        description TEXT,
+                        tag TEXT,
+                        structured_description TEXT,
                         description_usage JSONB,
                         tag_usage JSONB,
                         structured_description_usage JSONB,
                         description_time FLOAT,
                         tag_time FLOAT,
-                        structured_description_time FLOAT
-                    );
-                """))
-                print("'image_descriptions' table created or already exists.")
-
-                print("Creating 'users' table...")
-                cur.execute("""
-                    CREATE TABLE IF NOT EXISTS users (
-                        id UUID PRIMARY KEY,
-                        email TEXT UNIQUE NOT NULL,
-                        password TEXT NOT NULL,
-                        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+                        structured_description_time FLOAT,
+                        CONSTRAINT fk_media
+                            FOREIGN KEY(media_id)
+                            REFERENCES media(id)
                     );
                 """)
-                print("'users' table created or already exists.")
 
             con.commit()
-            print("\nDatabase initialization completed successfully!")
 
     except psycopg.OperationalError as e:
         print(f"\nError: Could not connect to the database.")
