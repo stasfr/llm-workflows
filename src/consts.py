@@ -1,3 +1,0 @@
-GARBAGE_LIST = []
-
-GARBAGE_IDS = []
