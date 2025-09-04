@@ -13,7 +13,6 @@ from config import (
     DB_PASSWORD,
     DB_HOST,
     DB_PORT,
-    DB_NAME,
     STORAGE_FOLDER
 )
 from utils.count_json_items import count_json_items
@@ -40,6 +39,7 @@ def _get_processed_ids(con: psycopg.Connection, db_table_name: str) -> set[int]:
         return set(row[0] for row in cur.fetchall())
 
 def populate_image_descriptions(
+    db_name: str,
     project_name: str,
     project_snapshot: str,
     db_table_name: str,
@@ -54,7 +54,7 @@ def populate_image_descriptions(
     PROJECT_DIR = os.path.join(STORAGE_FOLDER, 'projects', f"{project_name}_{project_snapshot}")
     FILTERED_FILE = os.path.join(PROJECT_DIR, 'filtered_telegram_data.json')
 
-    POSTGRES_CONN_STRING = f"dbname='{DB_NAME}' user='{DB_USER}' host='{DB_HOST}' port='{DB_PORT}' password='{DB_PASSWORD}'"
+    POSTGRES_CONN_STRING = f"dbname='{db_name}' user='{DB_USER}' host='{DB_HOST}' port='{DB_PORT}' password='{DB_PASSWORD}'"
 
     image_describer = ImageDescription(model_name=model_name)
 

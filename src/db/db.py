@@ -3,17 +3,14 @@ import sys
 import psycopg
 from psycopg import sql
 
-# This is needed to be able to run the script directly and still import the config
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
+from config import DB_USER, DB_PASSWORD, DB_HOST, DB_PORT
 
-from src.config import DB_USER, DB_PASSWORD, DB_HOST, DB_PORT, DB_NAME
-
-def init():
+def init(db_name: str):
     """
     Initializes the database by creating all necessary tables if they don't exist.
     """
     print("Connecting to the database...")
-    POSTGRES_CONN_STRING = f"dbname='{DB_NAME}' user='{DB_USER}' host='{DB_HOST}' port='{DB_PORT}' password='{DB_PASSWORD}'"
+    POSTGRES_CONN_STRING = f"dbname='{db_name}' user='{DB_USER}' host='{DB_HOST}' port='{DB_PORT}' password='{DB_PASSWORD}'"
 
     try:
         with psycopg.connect(POSTGRES_CONN_STRING) as con:
@@ -69,7 +66,3 @@ def init():
         print(f"Details: {e}")
     except Exception as e:
         print(f"\nAn unexpected error occurred: {e}")
-
-
-if __name__ == "__main__":
-    init()

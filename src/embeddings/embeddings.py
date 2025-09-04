@@ -8,7 +8,7 @@ import psycopg
 from psycopg import sql
 
 from config import (
-    DB_USER, DB_PASSWORD, DB_HOST, DB_PORT, DB_NAME,
+    DB_USER, DB_PASSWORD, DB_HOST, DB_PORT,
     MILVUS_HOST, MILVUS_PORT, STORAGE_FOLDER
 )
 
@@ -53,6 +53,7 @@ def create_milvus_collection(collection_name: str, vector_dim: int):
 
 
 def create_embeddings(
+    db_name: str,
     project_name: str,
     project_snapshot: str,
     collection_name: str,
@@ -78,7 +79,7 @@ def create_embeddings(
     """
     # --- 1. Настройка соединений и путей ---
     MILVUS_ADDRESS = f"http://{MILVUS_HOST}:{MILVUS_PORT}"
-    POSTGRES_CONN_STRING = f"dbname='{DB_NAME}' user='{DB_USER}' host='{DB_HOST}' port='{DB_PORT}' password='{DB_PASSWORD}'"
+    POSTGRES_CONN_STRING = f"dbname='{db_name}' user='{DB_USER}' host='{DB_HOST}' port='{DB_PORT}' password='{DB_PASSWORD}'"
     PROJECT_DIR = os.path.join(STORAGE_FOLDER, 'projects', f"{project_name}_{project_snapshot}")
     FILTERED_FILE = os.path.join(PROJECT_DIR, 'filtered_telegram_data.json')
 
