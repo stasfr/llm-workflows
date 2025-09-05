@@ -1,9 +1,5 @@
-import os
-import sys
 import psycopg
 from psycopg import sql
-
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
 from src.config import DB_USER, DB_PASSWORD, DB_HOST, DB_PORT
 
