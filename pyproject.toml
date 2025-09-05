@@ -24,4 +24,5 @@ dependencies = [
     "psycopg[binary]>=3.2.9",
     "bcrypt>=4.3.0",
     "pydantic>=2.11.7",
+    "fastapi[standard]>=0.116.1",
 ]
