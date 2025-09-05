@@ -1,7 +1,7 @@
 from pymilvus import connections, Collection
 from typing import List, Dict, Any
 
-from config import MILVUS_HOST, MILVUS_PORT
+from config import MILVUS_ADDRESS
 import llm
 
 
@@ -26,7 +26,6 @@ def search_similar_items(
     Returns:
         List[Dict[str, Any]]: A list of search results, each containing distance and output fields.
     """
-    MILVUS_ADDRESS = f"http://{MILVUS_HOST}:{MILVUS_PORT}"
     processed_results = []
 
     try:

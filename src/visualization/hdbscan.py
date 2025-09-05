@@ -1,4 +1,4 @@
-from config import MILVUS_HOST, MILVUS_PORT, STORAGE_FOLDER
+from config import MILVUS_ADDRESS, STORAGE_FOLDER
 
 import os
 import pandas as pd
@@ -49,8 +49,6 @@ def visualize_hdbscan_clusters(
             количество шагов. Defaults to None.
     """
     total_stages = 4
-
-    MILVUS_ADDRESS = f"http://{MILVUS_HOST}:{MILVUS_PORT}"
 
     PROJECT_DIR = os.path.join(STORAGE_FOLDER, 'projects', f"{project_name}_{project_snapshot}")
 

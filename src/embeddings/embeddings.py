@@ -9,7 +9,8 @@ from psycopg import sql
 
 from config import (
     DB_USER, DB_PASSWORD, DB_HOST, DB_PORT,
-    MILVUS_HOST, MILVUS_PORT, STORAGE_FOLDER
+    MILVUS_ADDRESS,
+    STORAGE_FOLDER,
 )
 
 from llm.openai_embedder import OpenAIEmbedder
@@ -78,7 +79,6 @@ def create_embeddings(
             Обратный вызов для отслеживания прогресса. По умолчанию None.
     """
     # --- 1. Настройка соединений и путей ---
-    MILVUS_ADDRESS = f"http://{MILVUS_HOST}:{MILVUS_PORT}"
     POSTGRES_CONN_STRING = f"dbname='{db_name}' user='{DB_USER}' host='{DB_HOST}' port='{DB_PORT}' password='{DB_PASSWORD}'"
     PROJECT_DIR = os.path.join(STORAGE_FOLDER, 'projects', f"{project_name}_{project_snapshot}")
     FILTERED_FILE = os.path.join(PROJECT_DIR, 'filtered_telegram_data.json')
