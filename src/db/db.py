@@ -3,13 +3,40 @@ import sys
 import psycopg
 from psycopg import sql
 
-from config import DB_USER, DB_PASSWORD, DB_HOST, DB_PORT
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+
+from src.config import DB_USER, DB_PASSWORD, DB_HOST, DB_PORT
 
 def init(db_name: str):
     """
-    Initializes the database by creating all necessary tables if they don't exist.
+    Initializes the database by creating it if it doesn't exist,
+    then creating all necessary tables if they don't exist.
     """
-    print("Connecting to the database...")
+    print("Connecting to PostgreSQL to ensure database exists...")
+    POSTGRES_MAINTENANCE_CONN_STRING = f"dbname='postgres' user='{DB_USER}' host='{DB_HOST}' port='{DB_PORT}' password='{DB_PASSWORD}'"
+
+    try:
+        # autocommit=True is required for CREATE DATABASE
+        with psycopg.connect(POSTGRES_MAINTENANCE_CONN_STRING, autocommit=True) as con:
+            with con.cursor() as cur:
+                cur.execute("SELECT 1 FROM pg_database WHERE datname = %s", (db_name,))
+                if not cur.fetchone():
+                    print(f"Database '{db_name}' does not exist. Creating it...")
+                    cur.execute(sql.SQL("CREATE DATABASE {}").format(sql.Identifier(db_name)))
+                    print(f"Database '{db_name}' created successfully.")
+                else:
+                    print(f"Database '{db_name}' already exists.")
+
+    except psycopg.OperationalError as e:
+        print(f"\nError: Could not connect to the PostgreSQL server.")
+        print(f"Please check your connection settings and ensure the PostgreSQL server is running.")
+        print(f"Details: {e}")
+        return
+    except Exception as e:
+        print(f"\nAn unexpected error occurred during database creation check: {e}")
+        return
+
+    print(f"Connecting to the '{db_name}' database to create tables...")
     POSTGRES_CONN_STRING = f"dbname='{db_name}' user='{DB_USER}' host='{DB_HOST}' port='{DB_PORT}' password='{DB_PASSWORD}'"
 
     try:
@@ -59,10 +86,11 @@ def init(db_name: str):
                 """)
 
             con.commit()
+            print("Tables created or already exist.")
 
     except psycopg.OperationalError as e:
-        print(f"\nError: Could not connect to the database.")
+        print(f"\nError: Could not connect to the database '{db_name}'.")
         print(f"Please check your connection settings and ensure the database server is running.")
         print(f"Details: {e}")
     except Exception as e:
-        print(f"\nAn unexpected error occurred: {e}")
+        print(f"\nAn unexpected error occurred during table creation: {e}")
