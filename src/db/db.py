@@ -1,9 +1,9 @@
 import psycopg
 from psycopg import sql
 
-from src.config import DB_USER, DB_PASSWORD, DB_HOST, DB_PORT
+from config import DB_USER, DB_PASSWORD, DB_HOST, DB_PORT
 
-def init(db_name: str):
+def init_db(db_name: str):
     """
     Initializes the database by creating it if it doesn't exist,
     then creating all necessary tables if they don't exist.
