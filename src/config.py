@@ -1,5 +1,8 @@
 import os
 from typing import overload, Optional, Literal
+from dotenv import load_dotenv
+
+load_dotenv()
 
 @overload
 def get_env_var(var_name: str, unsafe: Literal[False] = False) -> str:
