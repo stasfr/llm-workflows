@@ -1,8 +1,10 @@
+from datetime import datetime
 from typing import Optional
 from uuid import UUID
-from sqlalchemy import ForeignKey
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from sqlalchemy import ForeignKey, func
 from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.database import Model
 
@@ -15,6 +17,7 @@ class TgExports(Model):
     data_path: Mapped[str]
     photos_path: Mapped[str]
     posts: Mapped[list["Posts"]] = relationship(back_populates="channel")
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
 
 
 class Posts(Model):
@@ -29,6 +32,7 @@ class Posts(Model):
     reactions: Mapped[Optional[dict]] = mapped_column(JSONB)
     channel: Mapped["TgExports"] = relationship(back_populates="posts")
     media: Mapped[list["Media"]] = relationship(back_populates="post")
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
 
 
 class Media(Model):
@@ -40,6 +44,7 @@ class Media(Model):
     mime_type: Mapped[str]
     post: Mapped["Posts"] = relationship(back_populates="media")
     data: Mapped["MediaData"] = relationship(back_populates="media", uselist=False)
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
 
 
 class MediaData(Model):
@@ -57,3 +62,4 @@ class MediaData(Model):
     tag_time: Mapped[Optional[float]]
     structured_description_time: Mapped[Optional[float]]
     media: Mapped["Media"] = relationship(back_populates="data")
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
