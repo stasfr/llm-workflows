@@ -16,10 +16,10 @@ router = APIRouter(
 def init_db_handler(
     project: SProject,
 ) -> ApiResponse[PlainDataResponse]:
-    db_name = f"{project.name}_{project.snapshot}"
+    db_name = f"{project.project_name}_{project.project_snapshot}"
     try:
         init_db(db_name)
-        return ApiResponse(data=PlainDataResponse(message=f"Database for project {project.name}_{project.snapshot} initialized successfully"))
+        return ApiResponse(data=PlainDataResponse(message=f"Database for project {project.project_name}_{project.project_snapshot} initialized successfully"))
     except Exception as e:
         return ApiResponse(data=PlainDataResponse(error=str(e)))
 

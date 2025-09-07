@@ -2,5 +2,5 @@ from pydantic import BaseModel
 
 
 class SProject(BaseModel):
-    name: str
-    snapshot: str
+    project_name: str
+    project_snapshot: str

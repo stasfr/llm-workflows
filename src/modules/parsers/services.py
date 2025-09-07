@@ -5,8 +5,8 @@ import json
 import ijson
 
 from typing import Generator, Optional, Callable
-from src.data_models.telegram import Message
-from src.data_models.data import ParsedTelegramData
+from src.modules.parsers.schemas import Message
+from src.schemas import ParsedTelegramData
 
 from pydantic import ValidationError
 
