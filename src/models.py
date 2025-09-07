@@ -1,3 +1,4 @@
+import uuid
 from datetime import datetime
 from typing import Optional
 from uuid import UUID
@@ -12,7 +13,7 @@ from src.database import Model
 class TgExports(Model):
     __tablename__ = "tg_exports"
 
-    id: Mapped[UUID] = mapped_column(primary_key=True)
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
     channel_id: Mapped[str] = mapped_column(unique=True)
     data_path: Mapped[str]
     photos_path: Mapped[str]
@@ -23,7 +24,7 @@ class TgExports(Model):
 class Posts(Model):
     __tablename__ = "posts"
 
-    id: Mapped[UUID] = mapped_column(primary_key=True)
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
     post_id: Mapped[int] = mapped_column(unique=True)
     date: Mapped[Optional[str]]
     edited: Mapped[Optional[str]]
@@ -38,19 +39,19 @@ class Posts(Model):
 class Media(Model):
     __tablename__ = "media"
 
-    id: Mapped[UUID] = mapped_column(primary_key=True)
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
     name: Mapped[str]
     post_id: Mapped[int] = mapped_column(ForeignKey("posts.post_id"))
     mime_type: Mapped[str]
     post: Mapped["Posts"] = relationship(back_populates="media")
-    data: Mapped["MediaData"] = relationship(back_populates="media", uselist=False)
+    data: Mapped["MediaData"] = relationship(back_populates="media_data", uselist=False)
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
 
 
 class MediaData(Model):
     __tablename__ = "media_data"
 
-    id: Mapped[UUID] = mapped_column(primary_key=True)
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
     media_id: Mapped[UUID] = mapped_column(ForeignKey("media.id"), unique=True)
     description: Mapped[Optional[str]]
     tag: Mapped[Optional[str]]
@@ -61,5 +62,5 @@ class MediaData(Model):
     description_time: Mapped[Optional[float]]
     tag_time: Mapped[Optional[float]]
     structured_description_time: Mapped[Optional[float]]
-    media: Mapped["Media"] = relationship(back_populates="data")
+    media_data: Mapped["Media"] = relationship(back_populates="data")
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
