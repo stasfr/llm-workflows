@@ -2,9 +2,8 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends
 
-from src.schemas import ApiResponse, PlainDataResponse
+from src.schemas import ApiResponse, PlainDataResponse, SProject
 
-from src.modules.db.schemas import SProject
 from src.modules.parsers.services import parse_raw_telegram_data
 
 
