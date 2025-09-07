@@ -1,7 +1,7 @@
 import psycopg
 from psycopg import sql
 
-from config import DB_USER, DB_PASSWORD, DB_HOST, DB_PORT
+from src.config import DB_USER, DB_PASSWORD, DB_HOST, DB_PORT
 
 def init_db(db_name: str):
     """

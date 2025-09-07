@@ -1,12 +1,12 @@
-from config import STORAGE_FOLDER
+from src.config import STORAGE_FOLDER
 
 import os
 import json
 import ijson
 
 from typing import Generator, Optional, Callable
-from data_models.telegram import Message
-from data_models.data import ParsedTelegramData
+from src.data_models.telegram import Message
+from src.data_models.data import ParsedTelegramData
 
 from pydantic import ValidationError
 
