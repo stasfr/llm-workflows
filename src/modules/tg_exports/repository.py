@@ -1,3 +1,6 @@
+from typing import Optional
+from uuid import UUID
+
 from sqlalchemy import select
 
 from src.database import async_session_maker
@@ -29,3 +32,17 @@ class TgExportsRepository:
             tg_exports_schemas = [TgExport.model_validate(tg_export) for tg_export in tg_exports_models]
 
             return tg_exports_schemas
+
+    @classmethod
+    async def get_one_by_id(cls, tg_export_id: UUID) -> Optional[TgExport]:
+        async with async_session_maker() as session:
+            query = select(TgExports).where(TgExports.id == tg_export_id)
+            result = await session.execute(query)
+            tg_export_model = result.scalar_one_or_none()
+
+            if tg_export_model is None:
+                return None
+
+            tg_export_schema = TgExport.model_validate(tg_export_model)
+
+            return tg_export_schema
