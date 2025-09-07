@@ -1,35 +1,52 @@
 from typing import Optional
 from uuid import UUID
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import JSONB
 
 from src.database import Model
+
+
+class TgExports(Model):
+    __tablename__ = "tg_exports"
+
+    id: Mapped[UUID] = mapped_column(primary_key=True)
+    channel_id: Mapped[str] = mapped_column(unique=True)
+    data_path: Mapped[str]
+    photos_path: Mapped[str]
+    posts: Mapped[list["Posts"]] = relationship(back_populates="channel")
 
 
 class Posts(Model):
     __tablename__ = "posts"
 
     id: Mapped[UUID] = mapped_column(primary_key=True)
-    post_id: Mapped[int]
+    post_id: Mapped[int] = mapped_column(unique=True)
     date: Mapped[Optional[str]]
     edited: Mapped[Optional[str]]
-    from_id: Mapped[str]
+    from_id: Mapped[str] = mapped_column(ForeignKey("tg_exports.channel_id"))
     text: Mapped[Optional[str]]
     reactions: Mapped[Optional[dict]] = mapped_column(JSONB)
+    channel: Mapped["TgExports"] = relationship(back_populates="posts")
+    media: Mapped[list["Media"]] = relationship(back_populates="post")
+
 
 class Media(Model):
     __tablename__ = "media"
 
     id: Mapped[UUID] = mapped_column(primary_key=True)
     name: Mapped[str]
-    post_id: Mapped[int]
+    post_id: Mapped[int] = mapped_column(ForeignKey("posts.post_id"))
     mime_type: Mapped[str]
+    post: Mapped["Posts"] = relationship(back_populates="media")
+    data: Mapped["MediaData"] = relationship(back_populates="media", uselist=False)
+
 
 class MediaData(Model):
     __tablename__ = "media_data"
 
     id: Mapped[UUID] = mapped_column(primary_key=True)
-    media_id: Mapped[UUID]
+    media_id: Mapped[UUID] = mapped_column(ForeignKey("media.id"), unique=True)
     description: Mapped[Optional[str]]
     tag: Mapped[Optional[str]]
     structured_description: Mapped[Optional[str]]
@@ -39,3 +56,4 @@ class MediaData(Model):
     description_time: Mapped[Optional[float]]
     tag_time: Mapped[Optional[float]]
     structured_description_time: Mapped[Optional[float]]
+    media: Mapped["Media"] = relationship(back_populates="data")
