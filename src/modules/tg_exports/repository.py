@@ -4,7 +4,7 @@ from uuid import UUID
 from sqlalchemy import delete, select, update
 
 from src.database import async_session_maker
-from src.models import TgExports
+from src.models import TgExportsModel
 
 from src.modules.tg_exports.schemas import TgExport, TgExportAdd
 
@@ -14,7 +14,7 @@ class TgExportsRepository:
         async with async_session_maker() as session:
             new_tg_export = payload.model_dump()
 
-            tg_export = TgExports(**new_tg_export)
+            tg_export = TgExportsModel(**new_tg_export)
             session.add(tg_export)
             await session.flush()
             await session.commit()
@@ -26,7 +26,7 @@ class TgExportsRepository:
     @classmethod
     async def get_all(cls) -> list[TgExport]:
         async with async_session_maker() as session:
-            query = select(TgExports)
+            query = select(TgExportsModel)
             result = await session.execute(query)
             tg_exports_models = result.scalars().all()
             tg_exports_schemas = [
@@ -38,7 +38,7 @@ class TgExportsRepository:
     @classmethod
     async def get_one_by_id(cls, tg_export_id: UUID) -> Optional[TgExport]:
         async with async_session_maker() as session:
-            query = select(TgExports).where(TgExports.id == tg_export_id)
+            query = select(TgExportsModel).where(TgExportsModel.id == tg_export_id)
             result = await session.execute(query)
             tg_export_model = result.scalar_one_or_none()
 
@@ -57,10 +57,10 @@ class TgExportsRepository:
             update_data = payload.model_dump()
 
             query = (
-                update(TgExports)
-                .where(TgExports.id == tg_export_id)
+                update(TgExportsModel)
+                .where(TgExportsModel.id == tg_export_id)
                 .values(**update_data)
-                .returning(TgExports)
+                .returning(TgExportsModel)
             )
             result = await session.execute(query)
             await session.commit()
@@ -76,7 +76,7 @@ class TgExportsRepository:
     @classmethod
     async def delete_one_by_id(cls, tg_export_id: UUID) -> bool:
         async with async_session_maker() as session:
-            query = delete(TgExports).where(TgExports.id == tg_export_id)
+            query = delete(TgExportsModel).where(TgExportsModel.id == tg_export_id)
             result = await session.execute(query)
             await session.commit()
             return result.rowcount > 0

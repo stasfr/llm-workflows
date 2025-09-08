@@ -10,18 +10,18 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.database import Model
 
 
-class TgExports(Model):
+class TgExportsModel(Model):
     __tablename__ = "tg_exports"
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
     channel_id: Mapped[str] = mapped_column(unique=True)
     data_path: Mapped[str]
     photos_path: Mapped[str]
-    posts: Mapped[list["Posts"]] = relationship(back_populates="channel")
+    posts: Mapped[list["PostsModel"]] = relationship(back_populates="channel")
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
 
 
-class Posts(Model):
+class PostsModel(Model):
     __tablename__ = "posts"
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
@@ -31,24 +31,24 @@ class Posts(Model):
     from_id: Mapped[str] = mapped_column(ForeignKey("tg_exports.channel_id"))
     text: Mapped[Optional[str]]
     reactions: Mapped[Optional[dict]] = mapped_column(JSONB)
-    channel: Mapped["TgExports"] = relationship(back_populates="posts")
-    media: Mapped[list["Media"]] = relationship(back_populates="post")
+    channel: Mapped["TgExportsModel"] = relationship(back_populates="posts")
+    media: Mapped[list["MediaModel"]] = relationship(back_populates="post")
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
 
 
-class Media(Model):
+class MediaModel(Model):
     __tablename__ = "media"
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
     name: Mapped[str]
     post_id: Mapped[int] = mapped_column(ForeignKey("posts.post_id"))
     mime_type: Mapped[str]
-    post: Mapped["Posts"] = relationship(back_populates="media")
-    data: Mapped["MediaData"] = relationship(back_populates="media_data", uselist=False)
+    post: Mapped["PostsModel"] = relationship(back_populates="media")
+    data: Mapped["MediaDataModel"] = relationship(back_populates="media_data", uselist=False)
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
 
 
-class MediaData(Model):
+class MediaDataModel(Model):
     __tablename__ = "media_data"
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
@@ -62,5 +62,5 @@ class MediaData(Model):
     description_time: Mapped[Optional[float]]
     tag_time: Mapped[Optional[float]]
     structured_description_time: Mapped[Optional[float]]
-    media_data: Mapped["Media"] = relationship(back_populates="data")
+    media_data: Mapped["MediaModel"] = relationship(back_populates="data")
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
