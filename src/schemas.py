@@ -11,6 +11,9 @@ class PlainDataResponse(BaseModel):
     message: Optional[str] = None
     error: Optional[str] = None
 
+class DeleteResultResponse(BaseModel):
+    deleted: bool
+
 class ParsedTelegramData(BaseModel):
     id: int
     date: str
