@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import Optional
 from uuid import UUID
 
-from sqlalchemy import ForeignKey, func
+from sqlalchemy import ForeignKey, text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -17,8 +17,9 @@ class TgExportsModel(Model):
     channel_id: Mapped[str] = mapped_column(unique=True)
     data_path: Mapped[str]
     photos_path: Mapped[str]
+    created_at: Mapped[datetime] = mapped_column(server_default=text("TIMEZONE('UTC', now())"))
+
     posts: Mapped[list["PostsModel"]] = relationship(back_populates="channel")
-    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
 
 
 class PostsModel(Model):
@@ -29,11 +30,12 @@ class PostsModel(Model):
     date: Mapped[Optional[str]]
     edited: Mapped[Optional[str]]
     from_id: Mapped[str] = mapped_column(ForeignKey("tg_exports.channel_id"))
-    text: Mapped[Optional[str]]
+    post_text: Mapped[Optional[str]]
     reactions: Mapped[Optional[dict]] = mapped_column(JSONB)
+    created_at: Mapped[datetime] = mapped_column(server_default=text("TIMEZONE('UTC', now())"))
+
     channel: Mapped["TgExportsModel"] = relationship(back_populates="posts")
     media: Mapped[list["MediaModel"]] = relationship(back_populates="post")
-    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
 
 
 class MediaModel(Model):
@@ -43,9 +45,10 @@ class MediaModel(Model):
     name: Mapped[str]
     post_id: Mapped[int] = mapped_column(ForeignKey("posts.post_id"))
     mime_type: Mapped[str]
+    created_at: Mapped[datetime] = mapped_column(server_default=text("TIMEZONE('UTC', now())"))
+
     post: Mapped["PostsModel"] = relationship(back_populates="media")
     data: Mapped["MediaDataModel"] = relationship(back_populates="media_data", uselist=False)
-    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
 
 
 class MediaDataModel(Model):
@@ -62,5 +65,6 @@ class MediaDataModel(Model):
     description_time: Mapped[Optional[float]]
     tag_time: Mapped[Optional[float]]
     structured_description_time: Mapped[Optional[float]]
+    created_at: Mapped[datetime] = mapped_column(server_default=text("TIMEZONE('UTC', now())"))
+
     media_data: Mapped["MediaModel"] = relationship(back_populates="data")
-    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
