@@ -6,3 +6,9 @@ class CreateDatabasePayload(BaseModel):
 
 class DeleteDatabasePayload(BaseModel):
     dbname: str
+
+class RecreatePublicSchemaPayload(BaseModel):
+    dbname: str
+
+class CreateTablesPayload(BaseModel):
+    dbname: str

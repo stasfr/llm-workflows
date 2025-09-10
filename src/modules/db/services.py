@@ -31,3 +31,9 @@ async def delete_data_base_by_name(dbname: str) -> None:
         raise ValueError("Database name is not allowed")
 
     await DatabasesRepository.delete(dbname)
+
+async def recreate_public_schema(dbname: str) -> None:
+    await DatabasesRepository.recreate_public_schema(dbname)
+
+async def create_tables(dbname: str) -> None:
+    await DatabasesRepository.create_tables(dbname)

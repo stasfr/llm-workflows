@@ -4,8 +4,8 @@ from fastapi import APIRouter, Path
 
 from src.schemas import ApiResponse, PlainDataResponse
 
-from src.modules.db.services import create_new_database_by_name, delete_data_base_by_name, get_database_list
-from src.modules.db.schemas import CreateDatabasePayload, DeleteDatabasePayload
+from src.modules.db.services import create_new_database_by_name, delete_data_base_by_name, get_database_list, create_tables, recreate_public_schema
+from src.modules.db.schemas import CreateDatabasePayload, DeleteDatabasePayload, CreateTablesPayload, RecreatePublicSchemaPayload
 
 router = APIRouter(
     prefix="/db",
@@ -45,6 +45,34 @@ async def delete_database_handler(
 ) -> ApiResponse[PlainDataResponse]:
     try:
         await delete_data_base_by_name(payload.dbname)
+        return ApiResponse(data=PlainDataResponse(message=f"Done!"))
+    except Exception as e:
+        return ApiResponse(data=PlainDataResponse(error=str(e)))
+
+@router.post("/recreate_public_schema/{dbname}", description="Recreate public schema in given database")
+async def recreate_public_schema_handler(
+    payload: Annotated[RecreatePublicSchemaPayload, Path(
+        title="Database Name",
+        description="Name of the database to recreate public schema in",
+        examples=["mydb"],
+    )]
+) -> ApiResponse[PlainDataResponse]:
+    try:
+        await recreate_public_schema(payload.dbname)
+        return ApiResponse(data=PlainDataResponse(message=f"Done!"))
+    except Exception as e:
+        return ApiResponse(data=PlainDataResponse(error=str(e)))
+
+@router.post("/create_tables/{dbname}", description="Initialize all tables in given database")
+async def create_tables_handler(
+    payload: Annotated[CreateTablesPayload, Path(
+        title="Database Name",
+        description="Name of the database to initialize tables in",
+        examples=["mydb"],
+    )]
+) -> ApiResponse[PlainDataResponse]:
+    try:
+        await create_tables(payload.dbname)
         return ApiResponse(data=PlainDataResponse(message=f"Done!"))
     except Exception as e:
         return ApiResponse(data=PlainDataResponse(error=str(e)))
