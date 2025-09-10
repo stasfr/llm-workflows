@@ -1,11 +1,12 @@
 from uuid import UUID
-from typing import Annotated, List
+from typing import List, Annotated
 
 from fastapi import APIRouter, Body, Path
 
-from src.modules.tg_exports.repository import TgExportsRepository
-from src.modules.tg_exports.schemas import TgExportAdd, TgExport
-from src.schemas import ApiResponse, DeleteResultResponse, PlainDataResponse
+from src.modules.tg_exports.services import get_all_telegram_exports, add_telegram_export, update_telegram_export, delete_telegram_export, get_telegram_export
+from src.modules.tg_exports.schemas import TgExportModel
+from src.modules.tg_exports.dto import AddTgExport, DeleteTgExport, UpdateTgExport
+from src.schemas import PlainDataResponse, ApiResponse
 
 
 router = APIRouter(
@@ -14,77 +15,62 @@ router = APIRouter(
 )
 
 
-@router.get("", description="Get all Telegram channels exports for a project.")
-async def get_telegram_channels_handler() -> ApiResponse[List[TgExport]] | ApiResponse[PlainDataResponse]:
+@router.get("/", description="Get all Telegram channels exports.")
+async def get_all_telegram_exports_handler() -> ApiResponse[List[TgExportModel] | PlainDataResponse]:
     try:
-        channels = await TgExportsRepository.get_all()
-        return ApiResponse(data=channels)
+        all_tg_exports = await get_all_telegram_exports()
+        return ApiResponse(data=all_tg_exports)
     except Exception as e:
         return ApiResponse(data=PlainDataResponse(error=str(e)))
 
 
-@router.post("", description="Add a new Telegram channel export.")
-async def add_telegram_channel_handler(
-    payload: Annotated[TgExportAdd, Body(description="Telegram channel export creation payload")]
-) -> ApiResponse[TgExport] | ApiResponse[PlainDataResponse]:
+@router.post("/", description="Add a new Telegram channel export.")
+async def add_telegram_export_handler(
+    payload: Annotated[AddTgExport, Body(description="Telegram channel export creation payload")]
+) -> ApiResponse[TgExportModel] | ApiResponse[PlainDataResponse]:
     try:
-        channel = await TgExportsRepository.add_one(payload)
-        return ApiResponse(data=channel)
+        new_tg_export = await add_telegram_export(payload)
+        return ApiResponse(data=new_tg_export)
     except Exception as e:
         return ApiResponse(data=PlainDataResponse(error=str(e)))
 
 
-@router.get("/{id}", description="Get a Telegram channel export by ID.")
-async def get_telegram_channel_handler(
-    id: Annotated[UUID, Path(description="Telegram channel export ID")],
-) -> ApiResponse[TgExport] | ApiResponse[PlainDataResponse]:
+@router.delete("/{tg_export_id}", description="Delete a Telegram channel export.")
+async def delete_telegram_export_handler(
+    payload: Annotated[DeleteTgExport, Path(
+        title="Id of Telegram export (UUID v4)",
+        description="Id of the Telegram export to be deleted",
+        examples=["3fa85f64-5717-4562-b3fc-2c963f66afa6"],
+    )]
+) -> ApiResponse[PlainDataResponse]:
     try:
-        channel = await TgExportsRepository.get_one_by_id(id)
-
-        if not channel:
-            return ApiResponse(
-                data=PlainDataResponse(
-                    error=f"Telegram channel export with ID {id} not found"
-                )
-            )
-
-        return ApiResponse(data=channel)
+        await delete_telegram_export(payload)
+        return ApiResponse(data=PlainDataResponse(message="Done!"))
     except Exception as e:
         return ApiResponse(data=PlainDataResponse(error=str(e)))
 
 
-@router.put("/{id}", description="Update a Telegram channel export by ID.")
-async def update_telegram_channel_handler(
-    id: Annotated[UUID, Path(description="Telegram channel export ID")],
-    payload: Annotated[TgExportAdd, Body(description="Telegram channel export update payload")]
-) -> ApiResponse[TgExport] | ApiResponse[PlainDataResponse]:
+@router.put("/{tg_export_id}", description="Update a Telegram channel export.")
+async def update_telegram_export_handler(
+    payload: Annotated[UpdateTgExport, Body(description="Telegram channel export creation payload")]
+) -> ApiResponse[TgExportModel] | ApiResponse[PlainDataResponse]:
     try:
-        updated_channel = await TgExportsRepository.update_one_by_id(id, payload)
-        if not updated_channel:
-            return ApiResponse(
-                data=PlainDataResponse(
-                    error=f"Telegram channel export with ID {id} not found."
-                )
-            )
-
-        return ApiResponse(data=updated_channel)
+        updated_tg_export = await update_telegram_export(payload)
+        return ApiResponse(data=updated_tg_export)
     except Exception as e:
         return ApiResponse(data=PlainDataResponse(error=str(e)))
 
 
-@router.delete("/{id}", description="Delete a Telegram channel export by ID.")
-async def delete_telegram_channel_handler(
-    id: Annotated[UUID, Path(description="Telegram channel export ID")],
-) -> ApiResponse[DeleteResultResponse] | ApiResponse[PlainDataResponse]:
+@router.get("/{tg_export_id}", description="Get a Telegram export by ID.")
+async def get_telegram_export_handler(
+    tg_export_id: Annotated[UUID, Path(
+        title="Id of Telegram export (UUID v4)",
+        description="Id of the Telegram export to be deleted",
+        examples=["3fa85f64-5717-4562-b3fc-2c963f66afa6"]
+    )]
+) -> ApiResponse[TgExportModel | PlainDataResponse]:
     try:
-        deleted = await TgExportsRepository.delete_one_by_id(id)
-        if not deleted:
-            return ApiResponse(
-                data=PlainDataResponse(
-                    error=f"Telegram channel export with ID {id} not found or could not be deleted."
-                )
-            )
-
-        return ApiResponse(data=DeleteResultResponse(deleted=True))
+        tg_export_item = await get_telegram_export(tg_export_id)
+        return ApiResponse(data=tg_export_item)
     except Exception as e:
         return ApiResponse(data=PlainDataResponse(error=str(e)))

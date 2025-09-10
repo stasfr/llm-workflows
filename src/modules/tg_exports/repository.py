@@ -1,82 +1,103 @@
 from typing import Optional
 from uuid import UUID
 
-from sqlalchemy import delete, select, update
+from src.config import (
+    DB_USER,
+    DB_PASSWORD,
+    DB_HOST,
+    DB_PORT,
+    DB_NAME
+)
 
-from src.database import async_session_maker
-from src.models import TgExportsModel
+import psycopg
+from psycopg import sql
+from psycopg.rows import class_row
 
-from src.modules.tg_exports.schemas import TgExport, TgExportAdd
+from src.modules.tg_exports.schemas import TgExportModel
+from src.modules.tg_exports.dto import AddTgExport, DeleteTgExport, UpdateTgExport
+
 
 class TgExportsRepository:
     @classmethod
-    async def add_one(cls, payload: TgExportAdd) -> TgExport:
-        async with async_session_maker() as session:
-            new_tg_export = payload.model_dump()
-
-            tg_export = TgExportsModel(**new_tg_export)
-            session.add(tg_export)
-            await session.flush()
-            await session.commit()
-
-            tg_export_schema = TgExport.model_validate(tg_export)
-
-            return tg_export_schema
-
-    @classmethod
-    async def get_all(cls) -> list[TgExport]:
-        async with async_session_maker() as session:
-            query = select(TgExportsModel)
-            result = await session.execute(query)
-            tg_exports_models = result.scalars().all()
-            tg_exports_schemas = [
-                TgExport.model_validate(tg_export) for tg_export in tg_exports_models
-            ]
-
-            return tg_exports_schemas
+    async def get_all(cls) -> list[TgExportModel]:
+        async with await psycopg.AsyncConnection.connect(
+            user=DB_USER,
+            password=DB_PASSWORD,
+            host=DB_HOST,
+            port=DB_PORT,
+            dbname=DB_NAME,
+        ) as aconn:
+            async with aconn.cursor(row_factory=class_row(TgExportModel)) as acur:
+                await acur.execute(sql.SQL("""
+                    SELECT * FROM tg_exports
+                    """))
+                tg_export_items = await acur.fetchall()
+                return tg_export_items
 
     @classmethod
-    async def get_one_by_id(cls, tg_export_id: UUID) -> Optional[TgExport]:
-        async with async_session_maker() as session:
-            query = select(TgExportsModel).where(TgExportsModel.id == tg_export_id)
-            result = await session.execute(query)
-            tg_export_model = result.scalar_one_or_none()
-
-            if tg_export_model is None:
-                return None
-
-            tg_export_schema = TgExport.model_validate(tg_export_model)
-
-            return tg_export_schema
-
-    @classmethod
-    async def update_one_by_id(
-        cls, tg_export_id: UUID, payload: TgExportAdd
-    ) -> Optional[TgExport]:
-        async with async_session_maker() as session:
-            update_data = payload.model_dump()
-
-            query = (
-                update(TgExportsModel)
-                .where(TgExportsModel.id == tg_export_id)
-                .values(**update_data)
-                .returning(TgExportsModel)
-            )
-            result = await session.execute(query)
-            await session.commit()
-            updated_tg_export_model = result.scalar_one_or_none()
-
-            if updated_tg_export_model is None:
-                return None
-
-            tg_export_schema = TgExport.model_validate(updated_tg_export_model)
-
-            return tg_export_schema
+    async def add_one(cls, payload: AddTgExport) -> Optional[TgExportModel]:
+        async with await  psycopg.AsyncConnection.connect(
+              user=DB_USER,
+              password=DB_PASSWORD,
+              host=DB_HOST,
+              port=DB_PORT,
+              dbname=DB_NAME,
+          ) as aconn:
+              async with aconn.cursor(row_factory=class_row(TgExportModel)) as acur:
+                  await acur.execute(sql.SQL("""
+                      INSERT INTO tg_exports (channel_id, data_path, photos_path)
+                      VALUES (%s, %s, %s)
+                      RETURNING *
+                      """), (payload.channel_id, payload.data_path, payload.photos_path))
+                  new_tg_export = await acur.fetchone()
+                  return new_tg_export
 
     @classmethod
-    async def delete_one_by_id(cls, tg_export_id: UUID) -> bool:
-        async with async_session_maker() as session:
-            query = delete(TgExportsModel).where(TgExportsModel.id == tg_export_id)
-            result = await session.execute(query)
-            await session.commit()
-            return result.rowcount > 0
+    async def delete(cls, payload: DeleteTgExport) -> None:
+        async with await  psycopg.AsyncConnection.connect(
+              user=DB_USER,
+              password=DB_PASSWORD,
+              host=DB_HOST,
+              port=DB_PORT,
+              dbname=DB_NAME,
+          ) as aconn:
+              async with aconn.cursor() as acur:
+                  await acur.execute(sql.SQL("""
+                      DELETE FROM tg_exports WHERE id = %s
+                      """), (payload.tg_export_id,))
+
+    @classmethod
+    async def update(cls, payload: UpdateTgExport) -> Optional[TgExportModel]:
+        async with await  psycopg.AsyncConnection.connect(
+              user=DB_USER,
+              password=DB_PASSWORD,
+              host=DB_HOST,
+              port=DB_PORT,
+              dbname=DB_NAME,
+          ) as aconn:
+              async with aconn.cursor(row_factory=class_row(TgExportModel)) as acur:
+                  await acur.execute(sql.SQL("""
+                      UPDATE tg_exports
+                      SET channel_id = %s, data_path = %s, photos_path = %s
+                      WHERE id = %s
+                      RETURNING *
+                      """), (payload.channel_id, payload.data_path, payload.photos_path, payload.id))
+                  updated_tg_export = await acur.fetchone()
+                  return updated_tg_export
+
+    @classmethod
+    async def get_one_by_id(cls, tg_export_id: UUID) -> Optional[TgExportModel]:
+        async with await psycopg.AsyncConnection.connect(
+            user=DB_USER,
+            password=DB_PASSWORD,
+            host=DB_HOST,
+            port=DB_PORT,
+            dbname=DB_NAME,
+        ) as aconn:
+            async with aconn.cursor(row_factory=class_row(TgExportModel)) as acur:
+                await acur.execute(sql.SQL("""
+                    SELECT * FROM tg_exports
+                    WHERE id = %s
+                    """), (tg_export_id,))
+                tg_export_item = await acur.fetchone()
+                return tg_export_item
