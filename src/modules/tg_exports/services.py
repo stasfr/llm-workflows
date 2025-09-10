@@ -18,11 +18,11 @@ async def add_telegram_export(payload: AddTgExport) -> TgExportModel:
 
     return new_tg_export
 
-async def delete_telegram_export(payload: DeleteTgExport) -> None:
-    await TgExportsRepository.delete(payload)
+async def delete_telegram_export(tg_export_id: UUID) -> None:
+    await TgExportsRepository.delete(tg_export_id)
 
-async def update_telegram_export(payload: UpdateTgExport) -> TgExportModel:
-    updated_tg_export = await TgExportsRepository.update(payload)
+async def update_telegram_export(tg_export_id: UUID, payload: UpdateTgExport) -> TgExportModel:
+    updated_tg_export = await TgExportsRepository.update(tg_export_id, payload)
 
     if not updated_tg_export:
         raise ValueError("Failed to update Telegram export")

@@ -53,7 +53,7 @@ class TgExportsRepository:
                   return new_tg_export
 
     @classmethod
-    async def delete(cls, payload: DeleteTgExport) -> None:
+    async def delete(cls, tg_export_id: UUID) -> None:
         async with await  psycopg.AsyncConnection.connect(
               user=DB_USER,
               password=DB_PASSWORD,
@@ -64,10 +64,10 @@ class TgExportsRepository:
               async with aconn.cursor() as acur:
                   await acur.execute(sql.SQL("""
                       DELETE FROM tg_exports WHERE id = %s
-                      """), (payload.tg_export_id,))
+                      """), (tg_export_id,))
 
     @classmethod
-    async def update(cls, payload: UpdateTgExport) -> Optional[TgExportModel]:
+    async def update(cls, tg_export_id: UUID, payload: UpdateTgExport) -> Optional[TgExportModel]:
         async with await  psycopg.AsyncConnection.connect(
               user=DB_USER,
               password=DB_PASSWORD,
@@ -81,7 +81,7 @@ class TgExportsRepository:
                       SET channel_id = %s, data_path = %s, photos_path = %s
                       WHERE id = %s
                       RETURNING *
-                      """), (payload.channel_id, payload.data_path, payload.photos_path, payload.id))
+                      """), (payload.channel_id, payload.data_path, payload.photos_path, tg_export_id))
                   updated_tg_export = await acur.fetchone()
                   return updated_tg_export
 

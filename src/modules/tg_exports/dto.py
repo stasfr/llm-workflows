@@ -8,7 +8,6 @@ class AddTgExport(BaseModel):
     photos_path: str
 
 class UpdateTgExport(BaseModel):
-    id: UUID
     channel_id: str
     data_path: str
     photos_path: str
