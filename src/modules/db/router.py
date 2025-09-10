@@ -5,7 +5,7 @@ from fastapi import APIRouter, Path
 from src.schemas import ApiResponse, PlainDataResponse
 
 from src.modules.db.services import create_new_database_by_name, delete_data_base_by_name, get_database_list, create_tables, recreate_public_schema
-from src.modules.db.schemas import CreateDatabasePayload, DeleteDatabasePayload, CreateTablesPayload, RecreatePublicSchemaPayload
+from src.modules.db.dto import CreateDatabasePayload, DeleteDatabasePayload, CreateTablesPayload, RecreatePublicSchemaPayload
 
 router = APIRouter(
     prefix="/db",
