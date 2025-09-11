@@ -9,7 +9,6 @@ async def get_database_list() -> list[str]:
 
     for database in databases:
         if database not in DB_EXCEPRIONS_LIST:
-            print(database)
             filtered_databases.append(database)
 
     return filtered_databases
