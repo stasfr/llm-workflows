@@ -53,6 +53,8 @@ class EmojiReaction(BaseModel):
     count: int
     emoji: str
 
+Reactions = Union[EmojiReaction, PaidReaction]
+
 TextEntityType = Literal[
     'plain',
     'link',
@@ -104,7 +106,7 @@ class Message(MessageBase):
     photo_file_size: Optional[int] = None
     width: Optional[int] = None
     height: Optional[int] = None
-    reactions: Optional[List[Union[EmojiReaction, PaidReaction]]] = None
+    reactions: Optional[List[Reactions]] = None
     poll: Optional[Poll] = None
     file: Optional[str] = None
     file_name: Optional[str] = None

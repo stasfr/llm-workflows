@@ -1,7 +1,7 @@
 from typing import List, Optional
-from uuid import UUID
 from datetime import datetime
 from pydantic import BaseModel
+from src.pkg.telegram_schemas import Reactions
 
 
 class StartParsing(BaseModel):
@@ -16,5 +16,5 @@ class CreatePost(BaseModel):
     date: Optional[datetime]
     edited: Optional[datetime]
     post_text: Optional[str]
-    reactions: Optional[List[dict]]
+    reactions: Optional[List[Reactions]]
     media: List[CreateMedia]

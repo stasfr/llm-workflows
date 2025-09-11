@@ -21,7 +21,11 @@ from src.modules.parsers.dto import CreatePost
 class ParsersRepository:
     @classmethod
     async def add_one_post_with_media(cls, tg_export_id: UUID, payload: CreatePost) -> Optional[PostModel]:
-        reactions_json = json.dumps(payload.reactions) if payload.reactions is not None else None
+        reactions_json = (
+            json.dumps([r.model_dump() for r in payload.reactions])
+            if payload.reactions is not None
+            else None
+        )
 
         async with await psycopg.AsyncConnection.connect(
             user=DB_USER,
