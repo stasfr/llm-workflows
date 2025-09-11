@@ -1,24 +1,21 @@
 from fastapi import FastAPI
-
-# from contextlib import asynccontextmanager
+from fastapi.middleware.cors import CORSMiddleware
 
 from src.router import router as api_router
-# from src.database import create_tables
-# import src.models
-
-
-# @asynccontextmanager
-# async def lifespan(app: FastAPI):
-#     await create_tables()
-#     yield
 
 
 app = FastAPI(
-    # lifespan=lifespan,
     title="LLM Workflows API",
     description="API for managing LLM workflows",
     version="0.1.0",
 )
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 app.include_router(api_router)
