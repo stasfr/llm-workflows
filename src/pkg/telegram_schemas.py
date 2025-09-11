@@ -2,6 +2,8 @@ from __future__ import annotations
 from typing import List, Union, Literal, Optional
 from enum import Enum
 from pydantic import BaseModel
+from datetime import datetime
+
 
 MimeType = Literal[
     'application/pdf',
@@ -79,7 +81,7 @@ class TextEntity(BaseModel):
 
 class MessageBase(BaseModel):
     id: int
-    date: str # 2021-10-04T21:33:22
+    date: datetime # 2021-10-04T21:33:22
     date_unixtime: str
     text: Union[str, List[Union[TextEntity, str]]]
     text_entities: List[TextEntity]
@@ -96,8 +98,8 @@ class Message(MessageBase):
     type: Literal[MessageType.Message]
     from_: str
     from_id: str
-    edited: Optional[str] = None
-    edited_unixtime: Optional[str] = None
+    edited: Optional[datetime] = None # 2021-10-04T21:33:22
+    edited_unixtime: Optional[datetime] = None # 2021-10-04T21:33:22
     photo: Optional[str] = None
     photo_file_size: Optional[int] = None
     width: Optional[int] = None
