@@ -1,72 +1,64 @@
+from typing import Generator
+from uuid import UUID
+from pydantic import ValidationError
+
 from src.config import STORAGE_FOLDER
 
 import os
 import json
 import ijson
 
-from typing import Generator, Optional, Callable
 from src.pkg.telegram_schemas import Message
-from src.schemas import ParsedTelegramData
 
-from pydantic import ValidationError
+from src.modules.parsers.dto import StartParsing, CreatePost, CreateMedia
+from src.modules.parsers.repository import ParsersRepository
+
+from src.modules.tg_exports.repository import TgExportsRepository
+
 
 def stream_raw_tg_data(filename: str) -> Generator[dict, None, None]:
-    """
-    Генератор для потокового чтения данных из JSON-файла с помощью ijson.
-    Yields dictionaries.
-    """
     try:
         with open(filename, 'r', encoding='utf-8') as f:
             yield from ijson.items(f, 'messages.item')
     except FileNotFoundError:
-        print(f"Ошибка: Файл не найден по пути {filename}")
-        print("Пожалуйста, сначала выполните экспорт эмбеддингов из Milvus.")
-        raise
+        raise ValueError(f"File not found at {filename}")
     except json.JSONDecodeError:
-        print(f"Ошибка: Не удалось прочитать JSON из файла {filename}.")
-        raise
+        raise ValueError(f"Could not decode JSON from file {filename}")
 
-def parse_raw_telegram_data(
-    project_name: str,
-    project_snapshot: str,
-    progress_callback: Optional[Callable[[int, int], None]] = None
-) -> None:
-    """
-    Обрабатывает "сырые" данные из Telegram, извлекая, фильтруя и обрабатывая необходимые поля,
-    и сохраняет их в виде готовых к обработке данных.
-    """
+async def parse_raw_telegram_data(tg_export_id: UUID, payload: StartParsing) -> None:
+    tg_export = await TgExportsRepository.get_one_by_id(tg_export_id)
 
-    PHOTOS_DIR = os.path.join(STORAGE_FOLDER, 'photos', project_name)
-    PROJECT_DIR = os.path.join(STORAGE_FOLDER, 'projects', f"{project_name}_{project_snapshot}")
+    if not tg_export:
+        raise ValueError(f"Telegram export with ID {tg_export_id} not found")
+
+    PROJECT_DIR = os.path.join(STORAGE_FOLDER, tg_export.data_path.lstrip('\\/'))
 
     RAW_DATA_FILE = os.path.join(PROJECT_DIR, 'raw_data.json')
     GARBAGE_FILE = os.path.join(PROJECT_DIR, 'garbage.json')
-    OUTPUT_FILE = os.path.join(PROJECT_DIR, 'filtered_telegram_data.json')
 
     garbage_ids = []
     garbage_list = []
-    if os.path.exists(GARBAGE_FILE):
+
+    if os.path.exists(GARBAGE_FILE) and payload.apply_filters:
         with open(GARBAGE_FILE, 'r', encoding='utf-8') as f:
             try:
                 garbage_data = json.load(f)
                 garbage_ids = garbage_data.get('garbage_ids', [])
                 garbage_list = garbage_data.get('garbage_list', [])
             except json.JSONDecodeError:
-                print(f"Warning: Could not decode garbage file at {GARBAGE_FILE}")
-
+                raise ValueError(f"Could not decode garbage file at {GARBAGE_FILE}")
 
     try:
         with open(RAW_DATA_FILE, 'r', encoding='utf-8') as f:
             total_messages = sum(1 for _ in ijson.items(f, 'messages.item'))
 
         if total_messages == 0:
-            print("В файле не найдено сообщений для обработки.")
-            return
+            raise ValueError("No messages found in the file.")
+
 
         raw_tg_data = stream_raw_tg_data(RAW_DATA_FILE)
-        result: list[ParsedTelegramData] = []
+        result: list[CreatePost] = []
         garbage_ids_set = set(garbage_ids)
-        processed_count = 0
 
         for item in raw_tg_data:
             if item.get('type') == 'message':
@@ -83,27 +75,29 @@ def parse_raw_telegram_data(
                                 text = text.replace(garbage, '')
                             text = text.strip()
 
-                        parsed_data = ParsedTelegramData(
-                            id=message.id,
+                        create_post_payload = CreatePost(
+                            post_id=message.id,
                             date=message.date,
+                            edited=message.edited,
+                            post_text=text,
+                            reactions=message.reactions, # type: ignore
+                            media=[]
                         )
-                        if message.photo:
-                            parsed_data.photo = message.photo
-                        if text:
-                            parsed_data.text = text
 
-                        if parsed_data.text or parsed_data.photo:
-                            result.append(parsed_data)
+                        if message.photo:
+                            media = CreateMedia(
+                                name=message.photo,
+                                mime_type=message.mime_type # type: ignore
+                            )
+                            create_post_payload.media.append(media)
+
+                        if create_post_payload.post_text or len(create_post_payload.media):
+                            result.append(create_post_payload)
+                            await ParsersRepository.add_one_post_with_media(tg_export_id, create_post_payload)
+
                 except ValidationError as e:
+                    print(e)
                     pass
 
-            processed_count += 1
-            if progress_callback:
-                progress_callback(processed_count, total_messages)
-
-        with open(OUTPUT_FILE, 'w', encoding='utf-8') as f:
-            json.dump([item.model_dump(exclude_none=True) for item in result], f, ensure_ascii=False, indent=2)
-
     except Exception as e:
-        print(f"Stream processing error: {e}")
-        raise
+        raise ValueError(f"Stream processing error: {e}")
