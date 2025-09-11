@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import List, Union, Literal, Optional
 from enum import Enum
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from datetime import datetime
 
 
@@ -83,8 +83,8 @@ class MessageBase(BaseModel):
     id: int
     date: datetime # 2021-10-04T21:33:22
     date_unixtime: str
-    text: Union[str, List[Union[TextEntity, str]]]
-    text_entities: List[TextEntity]
+    text: Optional[Union[str, List[Union[TextEntity, str]]]] = None
+    text_entities: Optional[List[TextEntity]] = None
 
 class Service(MessageBase):
     type: Literal[MessageType.Service]
@@ -96,7 +96,7 @@ class Service(MessageBase):
 
 class Message(MessageBase):
     type: Literal[MessageType.Message]
-    from_: str
+    from_: str = Field(alias="from")
     from_id: str
     edited: Optional[datetime] = None # 2021-10-04T21:33:22
     edited_unixtime: Optional[datetime] = None # 2021-10-04T21:33:22
