@@ -35,6 +35,20 @@ async def add_telegram_export_handler(
         return ApiResponse(data=PlainDataResponse(error=str(e)))
 
 
+@router.post("/test_channel", description="Add a new Telegram channel export.")
+async def add_test_telegram_export_handler() -> ApiResponse[TgExportModel] | ApiResponse[PlainDataResponse]:
+    try:
+        test_payload = AddTgExport(
+            channel_id="channel1510200344",
+            data_path="\\instajeldor\\test",
+            photos_path="\\instajeldor\\photos",
+        )
+        new_tg_export = await add_telegram_export(test_payload)
+        return ApiResponse(data=new_tg_export)
+    except Exception as e:
+        return ApiResponse(data=PlainDataResponse(error=str(e)))
+
+
 @router.delete("/{tg_export_id}", description="Delete a Telegram channel export.")
 async def delete_telegram_export_handler(
     tg_export_id: Annotated[UUID, Path(
