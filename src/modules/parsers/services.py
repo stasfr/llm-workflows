@@ -80,14 +80,14 @@ async def parse_raw_telegram_data(tg_export_id: UUID, payload: StartParsing) -> 
                             date=message.date,
                             edited=message.edited,
                             post_text=text,
-                            reactions=message.reactions, # type: ignore
+                            reactions=message.reactions,
                             media=[]
                         )
 
                         if message.photo:
                             media = CreateMedia(
                                 name=message.photo,
-                                mime_type=message.mime_type # type: ignore
+                                mime_type=message.mime_type
                             )
                             create_post_payload.media.append(media)
 
