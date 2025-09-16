@@ -7,10 +7,11 @@ from src.modules.embeddings.dto import GenerateImageDescriptionsPayload
 from src.modules.embeddings.repository import EmbeddingsRepository
 from src.llm.image_description import ImageDescription
 from src.config import STORAGE_FOLDER
+from src.modules.embeddings.schemas import MediaForProcessing, MediaDataUpdate
 
 
-async def process_media_item(media_item: dict, image_describer: ImageDescription):
-    image_path = os.path.join(STORAGE_FOLDER, media_item['photos_path'].lstrip('\\/'), media_item['media_name'])
+async def process_media_item(media_item: MediaForProcessing, image_describer: ImageDescription):
+    image_path = os.path.join(STORAGE_FOLDER, media_item.photos_path.lstrip('\\/'), media_item.media_name)
 
     if not os.path.exists(image_path):
         print(f"Warning: Image not found at {image_path}")
@@ -22,8 +23,8 @@ async def process_media_item(media_item: dict, image_describer: ImageDescription
             tag, tag_usage, tag_time = image_describer.get_tag(img)
             structured_description, struct_desc_usage, struct_desc_time = image_describer.get_structured_description(img)
 
-            await EmbeddingsRepository.update_media_data(
-                media_id=media_item['media_id'],
+            update_data = MediaDataUpdate(
+                media_id=media_item.media_id,
                 description=description,
                 tag=tag,
                 structured_description=structured_description,
@@ -34,8 +35,10 @@ async def process_media_item(media_item: dict, image_describer: ImageDescription
                 tag_time=tag_time,
                 struct_desc_time=struct_desc_time
             )
+            await EmbeddingsRepository.update_media_data(update_data)
     except Exception as e:
-        print(f"Warning: Error processing image {media_item['media_id']}: {e}")
+        print(f"Warning: Error processing image {media_item.media_id}: {e}")
+
 
 
 async def background_process_all(payload: GenerateImageDescriptionsPayload):
