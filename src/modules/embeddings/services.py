@@ -5,7 +5,7 @@ from fastapi import BackgroundTasks
 
 from src.modules.embeddings.dto import GenerateImageDescriptionsPayload
 from src.modules.embeddings.repository import EmbeddingsRepository
-from src.llm.image_description import ImageDescription
+from src.shared.llm.image_description import ImageDescription
 from src.config import STORAGE_FOLDER
 from src.modules.embeddings.schemas import MediaForProcessing, MediaDataUpdate
 

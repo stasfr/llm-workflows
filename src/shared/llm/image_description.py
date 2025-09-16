@@ -1,24 +1,23 @@
+from src.config import LLM_API_URL
+
+from typing import Tuple, Dict, Optional
+
 import base64
 import io
 import time
 from openai import OpenAI
 from PIL import Image
-from typing import Tuple, Dict, Optional
+
 
 class ImageDescription:
-    """
-    A class to interact with a local Large Language Model that has vision capabilities,
-    through an OpenAI-compatible API (like LM Studio).
-    """
-    def __init__(self, model_name: str, api_base: str = "http://127.0.0.1:1234/v1"):
+    def __init__(self, model_name: str):
         self.model_name = model_name
         self.client = OpenAI(
-            base_url=api_base,
+            base_url=LLM_API_URL,
             api_key="not-needed" # required even if not used by the server
         )
 
     def _image_to_base64(self, image: Image.Image) -> str:
-        """Converts a PIL image to a base64 encoded string."""
         buffered = io.BytesIO()
         # Convert image to RGB to ensure compatibility
         if image.mode in ("RGBA", "P"):
@@ -27,9 +26,6 @@ class ImageDescription:
         return base64.b64encode(buffered.getvalue()).decode('utf-8')
 
     def get_description(self, image: Image.Image) -> Tuple[str, Optional[Dict], float]:
-        """
-        Generates a description for a given image.
-        """
         system_prompt = '''
         Твоя задача — составить короткое и объективное описание изображения (1-2 предложения).
 
@@ -69,7 +65,6 @@ class ImageDescription:
                     },
                 ],
                 temperature=1,
-                max_tokens=300,
             )
             end_time = time.time()
             duration = end_time - start_time
@@ -80,9 +75,6 @@ class ImageDescription:
             return f"Error: An exception occurred: {e}", None, 0.0
 
     def get_tag(self, image: Image.Image) -> Tuple[str, Optional[Dict], float]:
-        """
-        Generates tags for a given image.
-        """
         system_prompt = """
         Твоя задача — сгенерировать список тегов для изображения.
 
@@ -121,7 +113,6 @@ class ImageDescription:
                         ],
                     },
                 ],
-                max_tokens=50, # Tags are usually shorter
             )
             end_time = time.time()
             duration = end_time - start_time
@@ -132,9 +123,6 @@ class ImageDescription:
             return f"Error: An exception occurred: {e}", None, 0.0
 
     def get_structured_description(self, image: Image.Image) -> Tuple[str, Optional[Dict], float]:
-        """
-        Generates a structured description for a given image in JSON format.
-        """
         system_prompt = '''
         Твоя задача — извлечь структурированную информацию из изображения и вернуть ее в формате JSON.
 
@@ -184,7 +172,6 @@ class ImageDescription:
                         ],
                     },
                 ],
-                max_tokens=500,
             )
             end_time = time.time()
             duration = end_time - start_time
