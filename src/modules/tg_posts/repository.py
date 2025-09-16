@@ -92,7 +92,7 @@ class TgPostsRepository:
               async with aconn.cursor(row_factory=class_row(TgPostModel)) as acur:
                   await acur.execute(sql.SQL("""
                       UPDATE posts
-                      SET post_id = %s, from_id = %s, date = %s, edited = %s, post_text = %s, reactions = %s
+                      SET post_id = %s, from_id = %s, date = %s, edited = %s, post_text = %s, reactions = %s, has_media = %s
                       WHERE id = %s
                       RETURNING *
                       """), (
@@ -102,6 +102,7 @@ class TgPostsRepository:
                           payload.edited,
                           payload.post_text,
                           reactions_json,
+                          payload.has_media,
                           post_id
                       ))
                   updated_tg_post = await acur.fetchone()

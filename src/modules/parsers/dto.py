@@ -17,4 +17,5 @@ class CreatePost(BaseModel):
     edited: Optional[datetime]
     post_text: Optional[str]
     reactions: Optional[List[Reactions]]
+    has_media: bool
     media: List[CreateMedia]

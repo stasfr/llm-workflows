@@ -75,23 +75,25 @@ async def parse_raw_telegram_data(tg_export_id: UUID, payload: StartParsing) -> 
                                 text = text.replace(garbage, '')
                             text = text.strip()
 
+                        media_list = []
+                        if message.photo:
+                            media = CreateMedia(
+                                name=message.photo,
+                                mime_type=message.mime_type
+                            )
+                            media_list.append(media)
+
                         create_post_payload = CreatePost(
                             post_id=message.id,
                             date=message.date,
                             edited=message.edited,
                             post_text=text,
                             reactions=message.reactions,
-                            media=[]
+                            media=media_list,
+                            has_media=len(media_list) > 0
                         )
 
-                        if message.photo:
-                            media = CreateMedia(
-                                name=message.photo,
-                                mime_type=message.mime_type
-                            )
-                            create_post_payload.media.append(media)
-
-                        if create_post_payload.post_text or len(create_post_payload.media):
+                        if create_post_payload.post_text or create_post_payload.has_media:
                             result.append(create_post_payload)
                             await ParsersRepository.add_one_post_with_media(tg_export_id, create_post_payload)
 

@@ -15,4 +15,5 @@ class TgPostModel(BaseModel):
     post_text: Optional[str]
     reactions: Optional[List[Reactions]]
     from_id: Optional[UUID]
+    has_media: bool
     created_at: datetime

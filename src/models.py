@@ -32,6 +32,7 @@ class PostsModel(Model):
     from_id: Mapped[str] = mapped_column(ForeignKey("tg_exports.channel_id"))
     post_text: Mapped[Optional[str]]
     reactions: Mapped[Optional[dict]] = mapped_column(JSONB)
+    has_media: Mapped[bool] = mapped_column(default=False)
     created_at: Mapped[datetime] = mapped_column(server_default=text("TIMEZONE('UTC', now())"))
 
     channel: Mapped["TgExportsModel"] = relationship(back_populates="posts")

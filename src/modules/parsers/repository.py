@@ -44,8 +44,8 @@ class ParsersRepository:
             async with aconn.cursor(row_factory=class_row(PostModel)) as acur:
                 stmt = sql.SQL("""
                     WITH new_post AS (
-                        INSERT INTO posts (post_id, date, edited, post_text, reactions, from_id)
-                        VALUES (%s, %s, %s, %s, %s, %s)
+                        INSERT INTO posts (post_id, date, edited, post_text, reactions, has_media, from_id)
+                        VALUES (%s, %s, %s, %s, %s, %s, %s)
                         RETURNING *
                     ),
                     new_media AS (
@@ -76,6 +76,7 @@ class ParsersRepository:
                         payload.edited,
                         payload.post_text,
                         reactions_json,
+                        payload.has_media,
                         tg_export_id,
                         media_names,
                         media_mime_types

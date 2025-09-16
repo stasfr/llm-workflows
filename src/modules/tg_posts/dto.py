@@ -21,3 +21,4 @@ class UpdateTgPost(BaseModel):
     edited: Optional[datetime] = None
     post_text: Optional[str] = None
     reactions: Optional[List[Reactions]] = None
+    has_media: bool = False

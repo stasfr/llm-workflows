@@ -122,6 +122,7 @@ class DatabasesRepository:
                         edited TIMESTAMPTZ,
                         post_text TEXT,
                         reactions JSONB,
+                        has_media BOOLEAN DEFAULT FALSE,
 
                         from_id UUID,
                         FOREIGN KEY (from_id) REFERENCES tg_exports(id) ON DELETE SET NULL,
