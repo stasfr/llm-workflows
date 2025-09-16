@@ -17,7 +17,7 @@ class EmbeddingsRepository:
         ) as aconn:
             async with aconn.cursor(row_factory=dict_row) as acur:
                 await acur.execute(sql.SQL("""
-                    SELECT m.id as media_id, m.name as media_name, te.photos_path
+                    SELECT m.id as media_id, md.id as media_data_id, m.name as media_name, te.photos_path
                     FROM medias m
                     JOIN posts p ON m.post_id = p.id
                     JOIN tg_exports te ON p.from_id = te.id
@@ -36,7 +36,7 @@ class EmbeddingsRepository:
         ) as aconn:
             async with aconn.cursor(row_factory=dict_row) as acur:
                 await acur.execute(sql.SQL("""
-                    SELECT m.id as media_id, m.name as media_name, te.photos_path
+                    SELECT m.id as media_id, md.id as media_data_id, m.name as media_name, te.photos_path
                     FROM medias m
                     JOIN posts p ON m.post_id = p.id
                     JOIN tg_exports te ON p.from_id = te.id
@@ -55,7 +55,7 @@ class EmbeddingsRepository:
         ) as aconn:
             async with aconn.cursor(row_factory=dict_row) as acur:
                 await acur.execute(sql.SQL("""
-                    SELECT m.id as media_id, m.name as media_name, te.photos_path
+                    SELECT m.id as media_id, md.id as media_data_id, m.name as media_name, te.photos_path
                     FROM medias m
                     JOIN posts p ON m.post_id = p.id
                     JOIN tg_exports te ON p.from_id = te.id
@@ -72,21 +72,10 @@ class EmbeddingsRepository:
         ) as aconn:
             async with aconn.cursor() as acur:
                 await acur.execute(sql.SQL("""
-                    INSERT INTO media_datas (
-                        media_id, description, tag, structured_description,
-                        description_usage, tag_usage, structured_description_usage,
-                        description_time, tag_time, structured_description_time
-                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                    ON CONFLICT (media_id) DO UPDATE SET
-                        description = EXCLUDED.description,
-                        tag = EXCLUDED.tag,
-                        structured_description = EXCLUDED.structured_description,
-                        description_usage = EXCLUDED.description_usage,
-                        tag_usage = EXCLUDED.tag_usage,
-                        structured_description_usage = EXCLUDED.structured_description_usage,
-                        description_time = EXCLUDED.description_time,
-                        tag_time = EXCLUDED.tag_time,
-                        structured_description_time = EXCLUDED.structured_description_time
+                    UPDATE media_datas
+                    SET media_id = %s, description = %s, tag = %s, structured_description = %s, description_usage = %s, tag_usage = %s, structured_description_usage = %s, description_time = %s, tag_time = %s, structured_description_time = %s
+                    WHERE id = %s
+                    RETURNING *
                 """), (
                     data.media_id,
                     data.description,
@@ -98,4 +87,5 @@ class EmbeddingsRepository:
                     data.desc_time,
                     data.tag_time,
                     data.struct_desc_time,
+                    data.media_data_id,
                 ))

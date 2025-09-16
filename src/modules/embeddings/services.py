@@ -24,6 +24,7 @@ async def process_media_item(media_item: MediaForProcessing, image_describer: Im
             structured_description, struct_desc_usage, struct_desc_time = image_describer.get_structured_description(img)
 
             update_data = MediaDataUpdate(
+                media_data_id=media_item.media_data_id,
                 media_id=media_item.media_id,
                 description=description,
                 tag=tag,

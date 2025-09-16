@@ -4,10 +4,12 @@ from pydantic import BaseModel
 
 class MediaForProcessing(BaseModel):
     media_id: UUID
+    media_data_id: UUID
     media_name: str
     photos_path: str
 
 class MediaDataUpdate(BaseModel):
+    media_data_id: UUID
     media_id: UUID
     description: str
     tag: str
