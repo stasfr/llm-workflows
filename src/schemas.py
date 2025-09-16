@@ -13,13 +13,3 @@ class PlainDataResponse(BaseModel):
 
 class DeleteResultResponse(BaseModel):
     deleted: bool
-
-class ParsedTelegramData(BaseModel):
-    id: int
-    date: str
-    text: Optional[str] = None
-    photo: Optional[str] = None
-
-class SProject(BaseModel):
-    project_name: str
-    project_snapshot: str
