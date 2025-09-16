@@ -3,7 +3,7 @@ from typing import List, Annotated
 
 from fastapi import APIRouter, Body, Path
 
-from src.modules.tg_posts_media_data.services import get_all_telegram_posts_media_data, add_telegram_post_media_data, update_telegram_post_media_data, delete_telegram_post_media_data, get_telegram_post_media_data
+from src.modules.tg_posts_media_data.services import get_all_telegram_posts_media_data, add_telegram_post_media_data, update_telegram_post_media_data, delete_telegram_post_media_data, get_telegram_post_media_data, get_telegram_posts_media_data_by_media_id
 from src.modules.tg_posts_media_data.schemas import TgPostsMediaDataModel
 from src.modules.tg_posts_media_data.dto import AddTgPostsMediaData, UpdateTgPostsMediaData
 from src.schemas import PlainDataResponse, ApiResponse
@@ -77,5 +77,20 @@ async def get_telegram_post_media_data_handler(
     try:
         tg_post_media_data_item = await get_telegram_post_media_data(media_data_id)
         return ApiResponse(data=tg_post_media_data_item)
+    except Exception as e:
+        return ApiResponse(data=PlainDataResponse(error=str(e)))
+
+
+@router.get("/by_media/{media_id}", description="Get all Telegram posts media data by media ID.")
+async def get_telegram_posts_media_data_by_media_id_handler(
+    media_id: Annotated[UUID, Path(
+        title="Id of Telegram post media (UUID v4)",
+        description="Id of the Telegram post media to be retrieved",
+        examples=["3fa85f64-5717-4562-b3fc-2c963f66afa6"]
+    )]
+) -> ApiResponse[List[TgPostsMediaDataModel] | PlainDataResponse]:
+    try:
+        tg_post_media_data_items = await get_telegram_posts_media_data_by_media_id(media_id)
+        return ApiResponse(data=tg_post_media_data_items)
     except Exception as e:
         return ApiResponse(data=PlainDataResponse(error=str(e)))

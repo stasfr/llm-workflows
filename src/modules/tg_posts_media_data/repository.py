@@ -126,3 +126,17 @@ class TgPostsMediaDataRepository:
                 await acur.execute(sql.SQL("SELECT * FROM media_datas WHERE id = %s"), (media_data_id,))
                 tg_post_media_data_item = await acur.fetchone()
                 return tg_post_media_data_item
+
+    @classmethod
+    async def get_all_by_media_id(cls, media_id: UUID) -> list[TgPostsMediaDataModel]:
+        async with await psycopg.AsyncConnection.connect(
+            user=DB_USER,
+            password=DB_PASSWORD,
+            host=DB_HOST,
+            port=DB_PORT,
+            dbname=DB_NAME,
+        ) as aconn:
+            async with aconn.cursor(row_factory=class_row(TgPostsMediaDataModel)) as acur:
+                await acur.execute(sql.SQL("SELECT * FROM media_datas WHERE media_id = %s"), (media_id,))
+                tg_post_media_data_items = await acur.fetchall()
+                return tg_post_media_data_items

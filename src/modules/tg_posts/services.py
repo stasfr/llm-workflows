@@ -36,3 +36,13 @@ async def get_telegram_post(post_id: UUID) -> TgPostModel:
         raise ValueError("Telegram post not found")
 
     return tg_post_item
+
+
+async def get_telegram_posts_by_export_id(export_id: UUID) -> List[TgPostModel]:
+    tg_post_items = await TgPostsRepository.get_all_by_export_id(export_id)
+    return tg_post_items
+
+
+async def get_telegram_posts_by_channel_id(channel_id: str) -> List[TgPostModel]:
+    tg_post_items = await TgPostsRepository.get_all_by_channel_id(channel_id)
+    return tg_post_items

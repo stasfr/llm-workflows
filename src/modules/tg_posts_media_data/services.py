@@ -36,3 +36,8 @@ async def get_telegram_post_media_data(media_data_id: UUID) -> TgPostsMediaDataM
         raise ValueError("Telegram post media data not found")
 
     return tg_post_media_data_item
+
+
+async def get_telegram_posts_media_data_by_media_id(media_id: UUID) -> List[TgPostsMediaDataModel]:
+    tg_post_media_data_items = await TgPostsMediaDataRepository.get_all_by_media_id(media_id)
+    return tg_post_media_data_items

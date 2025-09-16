@@ -3,7 +3,15 @@ from typing import List, Annotated
 
 from fastapi import APIRouter, Body, Path
 
-from src.modules.tg_posts.services import get_all_telegram_posts, add_telegram_post, update_telegram_post, delete_telegram_post, get_telegram_post
+from src.modules.tg_posts.services import (
+    get_all_telegram_posts, 
+    add_telegram_post, 
+    update_telegram_post, 
+    delete_telegram_post, 
+    get_telegram_post,
+    get_telegram_posts_by_export_id,
+    get_telegram_posts_by_channel_id
+)
 from src.modules.tg_posts.schemas import TgPostModel
 from src.modules.tg_posts.dto import AddTgPost, UpdateTgPost
 from src.schemas import PlainDataResponse, ApiResponse
@@ -77,5 +85,35 @@ async def get_telegram_post_handler(
     try:
         tg_post_item = await get_telegram_post(post_id)
         return ApiResponse(data=tg_post_item)
+    except Exception as e:
+        return ApiResponse(data=PlainDataResponse(error=str(e)))
+
+
+@router.get("/by_export/{export_id}", description="Get all Telegram posts by export ID.")
+async def get_telegram_posts_by_export_id_handler(
+    export_id: Annotated[UUID, Path(
+        title="Id of Telegram export (UUID v4)",
+        description="Id of the Telegram export to be retrieved",
+        examples=["3fa85f64-5717-4562-b3fc-2c963f66afa6"]
+    )]
+) -> ApiResponse[List[TgPostModel] | PlainDataResponse]:
+    try:
+        tg_post_items = await get_telegram_posts_by_export_id(export_id)
+        return ApiResponse(data=tg_post_items)
+    except Exception as e:
+        return ApiResponse(data=PlainDataResponse(error=str(e)))
+
+
+@router.get("/by_channel/{channel_id}", description="Get all Telegram posts by channel ID.")
+async def get_telegram_posts_by_channel_id_handler(
+    channel_id: Annotated[str, Path(
+        title="ID of the channel",
+        description="ID of the channel for which posts are to be received",
+        examples=["channel1510200344"]
+    )]
+) -> ApiResponse[List[TgPostModel] | PlainDataResponse]:
+    try:
+        tg_post_items = await get_telegram_posts_by_channel_id(channel_id)
+        return ApiResponse(data=tg_post_items)
     except Exception as e:
         return ApiResponse(data=PlainDataResponse(error=str(e)))

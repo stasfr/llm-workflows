@@ -120,3 +120,36 @@ class TgPostsRepository:
                 await acur.execute(sql.SQL("SELECT * FROM posts WHERE id = %s"), (post_id,))
                 tg_post_item = await acur.fetchone()
                 return tg_post_item
+
+    @classmethod
+    async def get_all_by_export_id(cls, export_id: UUID) -> list[TgPostModel]:
+        async with await psycopg.AsyncConnection.connect(
+            user=DB_USER,
+            password=DB_PASSWORD,
+            host=DB_HOST,
+            port=DB_PORT,
+            dbname=DB_NAME,
+        ) as aconn:
+            async with aconn.cursor(row_factory=class_row(TgPostModel)) as acur:
+                await acur.execute(sql.SQL("SELECT * FROM posts WHERE from_id = %s"), (export_id,))
+                tg_post_items = await acur.fetchall()
+                return tg_post_items
+
+    @classmethod
+    async def get_all_by_channel_id(cls, channel_id: str) -> list[TgPostModel]:
+        async with await psycopg.AsyncConnection.connect(
+            user=DB_USER,
+            password=DB_PASSWORD,
+            host=DB_HOST,
+            port=DB_PORT,
+            dbname=DB_NAME,
+        ) as aconn:
+            async with aconn.cursor(row_factory=class_row(TgPostModel)) as acur:
+                await acur.execute(sql.SQL("""
+                    SELECT p.*
+                    FROM posts p
+                    INNER JOIN tg_exports te ON p.from_id = te.id
+                    WHERE te.channel_id = %s
+                """), (channel_id,))
+                tg_post_items = await acur.fetchall()
+                return tg_post_items
