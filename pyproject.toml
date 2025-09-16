@@ -25,5 +25,4 @@ dependencies = [
     "bcrypt>=4.3.0",
     "pydantic>=2.11.7",
     "fastapi[standard]>=0.116.1",
-    "sqlalchemy>=2.0.43",
 ]
