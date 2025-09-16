@@ -13,7 +13,6 @@ dependencies = [
     "plotly>=6.3.0",
     "pymilvus>=2.6.0",
     "scikit-learn>=1.7.1",
-    "sentence-transformers>=5.1.0",
     "tqdm>=4.67.1",
     "transformers[torch]>=4.55.4",
     "umap-learn==0.5.9.post2",
