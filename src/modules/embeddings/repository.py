@@ -23,6 +23,7 @@ class EmbeddingsRepository:
                     JOIN tg_exports te ON p.from_id = te.id
                     LEFT JOIN media_datas md ON m.id = md.media_id
                     WHERE te.id = %s AND m.mime_type LIKE 'image/%%' AND (md.id IS NULL OR md.description IS NULL)
+                    ORDER BY m.id
                     LIMIT %s OFFSET %s
                 """), (export_id, limit, offset))
                 result = await acur.fetchall()
@@ -41,6 +42,7 @@ class EmbeddingsRepository:
                     JOIN tg_exports te ON p.from_id = te.id
                     LEFT JOIN media_datas md ON m.id = md.media_id
                     WHERE p.id = %s AND m.mime_type LIKE 'image/%%' AND (md.id IS NULL OR md.description IS NULL)
+                    ORDER BY m.id
                     LIMIT %s OFFSET %s
                 """), (post_id, limit, offset))
                 result = await acur.fetchall()
@@ -70,23 +72,30 @@ class EmbeddingsRepository:
         ) as aconn:
             async with aconn.cursor() as acur:
                 await acur.execute(sql.SQL("""
-                    UPDATE media_datas
-                    SET
-                        description = %s,
-                        tag = %s,
-                        structured_description = %s,
-                        description_usage = %s,
-                        tag_usage = %s,
-                        structured_description_usage = %s,
-                        description_time = %s,
-                        tag_time = %s,
-                        structured_description_time = %s
-                    WHERE media_id = %s
+                    INSERT INTO media_datas (
+                        media_id, description, tag, structured_description,
+                        description_usage, tag_usage, structured_description_usage,
+                        description_time, tag_time, structured_description_time
+                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    ON CONFLICT (media_id) DO UPDATE SET
+                        description = EXCLUDED.description,
+                        tag = EXCLUDED.tag,
+                        structured_description = EXCLUDED.structured_description,
+                        description_usage = EXCLUDED.description_usage,
+                        tag_usage = EXCLUDED.tag_usage,
+                        structured_description_usage = EXCLUDED.structured_description_usage,
+                        description_time = EXCLUDED.description_time,
+                        tag_time = EXCLUDED.tag_time,
+                        structured_description_time = EXCLUDED.structured_description_time
                 """), (
-                    data.description, data.tag, data.structured_description,
+                    data.media_id,
+                    data.description,
+                    data.tag,
+                    data.structured_description,
                     json.dumps(data.desc_usage) if data.desc_usage else None,
                     json.dumps(data.tag_usage) if data.tag_usage else None,
                     json.dumps(data.struct_desc_usage) if data.struct_desc_usage else None,
-                    data.desc_time, data.tag_time, data.struct_desc_time,
-                    data.media_id
+                    data.desc_time,
+                    data.tag_time,
+                    data.struct_desc_time,
                 ))
