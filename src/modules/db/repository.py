@@ -135,7 +135,7 @@ class DatabasesRepository:
                         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 
                         name TEXT NOT NULL,
-                        mime_type TEXT NOT NULL,
+                        mime_type TEXT,
 
                         post_id UUID,
                         FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE SET NULL,

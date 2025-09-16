@@ -26,7 +26,7 @@ class MediaModel(BaseModel):
     id: UUID
 
     name: str
-    mime_type: str
+    mime_type: Optional[str]
 
     post_id: Optional[UUID]
 
