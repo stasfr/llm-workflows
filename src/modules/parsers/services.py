@@ -77,9 +77,22 @@ async def parse_raw_telegram_data(tg_export_id: UUID, payload: StartParsing) -> 
 
                         media_list = []
                         if message.photo:
+                            mime_type = message.mime_type
+                            if not mime_type:
+                                file_ext = os.path.splitext(message.photo)[1].lower()
+                                mime_types = {
+                                    '.jpg': 'image/jpeg',
+                                    '.jpeg': 'image/jpeg',
+                                    '.png': 'image/png',
+                                    '.gif': 'image/gif',
+                                    '.webp': 'image/webp',
+                                    '.bmp': 'image/bmp',
+                                }
+                                mime_type = mime_types.get(file_ext)
+
                             media = CreateMedia(
                                 name=message.photo,
-                                mime_type=message.mime_type
+                                mime_type=mime_type
                             )
                             media_list.append(media)
 
