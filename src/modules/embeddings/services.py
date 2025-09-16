@@ -41,30 +41,36 @@ async def process_media_item(media_item: MediaForProcessing, image_describer: Im
         print(f"Warning: Error processing image {media_item.media_id}: {e}")
 
 
-
-async def background_process_all(payload: GenerateImageDescriptionsPayload):
-    image_describer = ImageDescription(model_name=payload.model_name)
+async def background_process_by_export(export_id: UUID, model_name: str):
+    image_describer = ImageDescription(model_name=model_name)
     page_size = 10
     page = 0
-
     while True:
-        media_to_process = []
-        if payload.tg_export_id:
-            media_to_process = await EmbeddingsRepository.get_media_for_processing_by_export_id(payload.tg_export_id, page_size, page * page_size)
-        elif payload.tg_post_id:
-            media_to_process = await EmbeddingsRepository.get_media_for_processing_by_post_id(payload.tg_post_id, page_size, page * page_size)
-
+        media_to_process = await EmbeddingsRepository.get_media_for_processing_by_export_id(export_id, page_size, page * page_size)
         if not media_to_process:
             break
-
         for media_item in media_to_process:
             await process_media_item(media_item, image_describer)
-
         if len(media_to_process) < page_size:
             break
-
         page += 1
-    print("Finished background processing.")
+    print(f"Finished background processing for export: {export_id}")
+
+
+async def background_process_by_post(post_id: UUID, model_name: str):
+    image_describer = ImageDescription(model_name=model_name)
+    page_size = 10
+    page = 0
+    while True:
+        media_to_process = await EmbeddingsRepository.get_media_for_processing_by_post_id(post_id, page_size, page * page_size)
+        if not media_to_process:
+            break
+        for media_item in media_to_process:
+            await process_media_item(media_item, image_describer)
+        if len(media_to_process) < page_size:
+            break
+        page += 1
+    print(f"Finished background processing for post: {post_id}")
 
 
 async def background_process_single(media_id: UUID, model_name: str):
@@ -75,11 +81,25 @@ async def background_process_single(media_id: UUID, model_name: str):
     print(f"Finished background processing for single media: {media_id}")
 
 
-async def start_image_description_generation(
+async def start_image_description_generation_by_export(
+    export_id: UUID,
     payload: GenerateImageDescriptionsPayload,
     background_tasks: BackgroundTasks
 ):
-    if payload.tg_media_id:
-        background_tasks.add_task(background_process_single, payload.tg_media_id, payload.model_name)
-    else:
-        background_tasks.add_task(background_process_all, payload)
+    background_tasks.add_task(background_process_by_export, export_id, payload.model_name)
+
+
+async def start_image_description_generation_by_post(
+    post_id: UUID,
+    payload: GenerateImageDescriptionsPayload,
+    background_tasks: BackgroundTasks
+):
+    background_tasks.add_task(background_process_by_post, post_id, payload.model_name)
+
+
+async def start_image_description_generation_by_media(
+    media_id: UUID,
+    payload: GenerateImageDescriptionsPayload,
+    background_tasks: BackgroundTasks
+):
+    background_tasks.add_task(background_process_single, media_id, payload.model_name)
