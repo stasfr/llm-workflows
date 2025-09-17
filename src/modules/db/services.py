@@ -36,3 +36,23 @@ async def recreate_public_schema(dbname: str) -> None:
 
 async def create_tables(dbname: str) -> None:
     await DatabasesRepository.create_tables(dbname)
+
+async def setup_database(dbname: str) -> None:
+    if not dbname:
+        raise ValueError("Database name is required")
+
+    if dbname in DB_EXCEPRIONS_LIST:
+        raise ValueError("Database name is not allowed")
+
+    # Get list of existing databases
+    existing_databases = await DatabasesRepository.get_all()
+
+    # If database exists, delete it first
+    if dbname in existing_databases:
+        await DatabasesRepository.delete(dbname)
+
+    # Create the database
+    await DatabasesRepository.add_one(dbname)
+
+    # Create tables
+    await create_tables(dbname)
