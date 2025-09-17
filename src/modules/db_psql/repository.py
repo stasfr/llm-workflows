@@ -165,3 +165,15 @@ class DatabasesRepository:
                         created_at TIMESTAMPTZ DEFAULT (NOW() AT TIME ZONE 'UTC')
                     )
                     """))
+
+                await acur.execute(sql.SQL("""
+                    CREATE TABLE IF NOT EXISTS jobs (
+                        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+
+                        status VARCHAR(50) NOT NULL DEFAULT 'pending',
+                        metadata TEXT,
+
+                        created_at TIMESTAMPTZ DEFAULT (NOW() AT TIME ZONE 'UTC'),
+                        updated_at TIMESTAMPTZ
+                    )
+                    """))

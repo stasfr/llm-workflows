@@ -7,6 +7,8 @@ from src.modules.media_descriptions.dto import GenerateImageDescriptionsPayload
 from src.modules.media_descriptions.repository import MediaDescriptionsRepository
 from src.modules.media_descriptions.schemas import MediaForProcessing, MediaDataUpdate
 from src.shared.llm.image_description import ImageDescription
+from src.modules.jobs.services import add_job, update_job_status
+from src.modules.jobs.schemas import JobStatus, AddJob, UpdateJobStatus
 from src.config import STORAGE_FOLDER
 
 
@@ -41,7 +43,11 @@ async def process_media_item(media_item: MediaForProcessing, image_describer: Im
         print(f"Warning: Error processing image {media_item.media_id}: {e}")
 
 
-async def background_process_by_export(export_id: UUID, model_name: str):
+async def background_process_by_export(export_id: UUID, model_name: str, job_id: UUID):
+    # Update job status to in progress if job_id is provided
+    if job_id:
+        await update_job_status(job_id, UpdateJobStatus(status=JobStatus.IN_PROGRESS))
+
     image_describer = ImageDescription(model_name=model_name)
     page_size = 10
     page = 0
@@ -54,10 +60,19 @@ async def background_process_by_export(export_id: UUID, model_name: str):
         if len(media_to_process) < page_size:
             break
         page += 1
+
+    # Update job status to completed if job_id is provided
+    if job_id:
+        await update_job_status(job_id, UpdateJobStatus(status=JobStatus.COMPLETED))
+
     print(f"Finished background processing for export: {export_id}")
 
 
-async def background_process_by_post(post_id: UUID, model_name: str):
+async def background_process_by_post(post_id: UUID, model_name: str, job_id: UUID):
+    # Update job status to in progress if job_id is provided
+    if job_id:
+        await update_job_status(job_id, UpdateJobStatus(status=JobStatus.IN_PROGRESS))
+
     image_describer = ImageDescription(model_name=model_name)
     page_size = 10
     page = 0
@@ -70,14 +85,28 @@ async def background_process_by_post(post_id: UUID, model_name: str):
         if len(media_to_process) < page_size:
             break
         page += 1
+
+    # Update job status to completed if job_id is provided
+    if job_id:
+        await update_job_status(job_id, UpdateJobStatus(status=JobStatus.COMPLETED))
+
     print(f"Finished background processing for post: {post_id}")
 
 
-async def background_process_single(media_id: UUID, model_name: str):
+async def background_process_single(media_id: UUID, model_name: str, job_id: UUID):
+    # Update job status to in progress if job_id is provided
+    if job_id:
+        await update_job_status(job_id, UpdateJobStatus(status=JobStatus.IN_PROGRESS))
+
     image_describer = ImageDescription(model_name=model_name)
     media_item = await MediaDescriptionsRepository.get_media_for_processing_by_media_id(media_id)
     if media_item:
         await process_media_item(media_item, image_describer)
+
+    # Update job status to completed if job_id is provided
+    if job_id:
+        await update_job_status(job_id, UpdateJobStatus(status=JobStatus.COMPLETED))
+
     print(f"Finished background processing for single media: {media_id}")
 
 
@@ -86,7 +115,11 @@ async def start_image_description_generation_by_export(
     payload: GenerateImageDescriptionsPayload,
     background_tasks: BackgroundTasks
 ):
-    background_tasks.add_task(background_process_by_export, export_id, payload.model_name)
+    # Create a job for tracking this background process
+    job_metadata = f"Process media for export with {export_id}"
+    job = await add_job(AddJob(status=JobStatus.PENDING, metadata=job_metadata))
+
+    background_tasks.add_task(background_process_by_export, export_id, payload.model_name, job.id)
 
 
 async def start_image_description_generation_by_post(
@@ -94,7 +127,11 @@ async def start_image_description_generation_by_post(
     payload: GenerateImageDescriptionsPayload,
     background_tasks: BackgroundTasks
 ):
-    background_tasks.add_task(background_process_by_post, post_id, payload.model_name)
+    # Create a job for tracking this background process
+    job_metadata = f"Process media for post with {post_id}"
+    job = await add_job(AddJob(status=JobStatus.PENDING, metadata=job_metadata))
+
+    background_tasks.add_task(background_process_by_post, post_id, payload.model_name, job.id)
 
 
 async def start_image_description_generation_by_media(
@@ -102,4 +139,8 @@ async def start_image_description_generation_by_media(
     payload: GenerateImageDescriptionsPayload,
     background_tasks: BackgroundTasks
 ):
-    background_tasks.add_task(background_process_single, media_id, payload.model_name)
+    # Create a job for tracking this background process
+    job_metadata = f"Process single media with {media_id}"
+    job = await add_job(AddJob(status=JobStatus.PENDING, metadata=job_metadata))
+
+    background_tasks.add_task(background_process_single, media_id, payload.model_name, job.id)
