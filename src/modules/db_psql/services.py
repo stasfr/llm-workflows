@@ -1,5 +1,5 @@
-from src.modules.db.common import DB_EXCEPRIONS_LIST
-from src.modules.db.repository import DatabasesRepository
+from src.modules.db_psql.common import DB_EXCEPRIONS_LIST
+from src.modules.db_psql.repository import DatabasesRepository
 
 
 async def get_database_list() -> list[str]:

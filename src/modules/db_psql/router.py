@@ -4,7 +4,7 @@ from fastapi import APIRouter, Path
 
 from src.schemas import ApiResponse, PlainDataResponse
 
-from src.modules.db.services import (
+from src.modules.db_psql.services import (
     create_new_database_by_name,
     delete_data_base_by_name,
     get_database_list,
