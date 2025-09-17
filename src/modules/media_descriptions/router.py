@@ -2,8 +2,8 @@ from typing import Annotated
 from uuid import UUID
 from fastapi import APIRouter, Body, BackgroundTasks, Path
 
-from src.modules.embeddings.dto import GenerateImageDescriptionsPayload
-from src.modules.embeddings.services import (
+from src.modules.media_descriptions.dto import GenerateImageDescriptionsPayload
+from src.modules.media_descriptions.services import (
     start_image_description_generation_by_export,
     start_image_description_generation_by_post,
     start_image_description_generation_by_media,
@@ -12,8 +12,8 @@ from src.schemas import PlainDataResponse, ApiResponse
 
 
 router = APIRouter(
-    prefix="/embeddings",
-    tags=["Embeddings"],
+    prefix="/media_descriptions",
+    tags=["Media Descriptions"],
 )
 
 

@@ -3,11 +3,11 @@ from uuid import UUID
 from PIL import Image
 from fastapi import BackgroundTasks
 
-from src.modules.embeddings.dto import GenerateImageDescriptionsPayload
-from src.modules.embeddings.repository import EmbeddingsRepository
+from src.modules.media_descriptions.dto import GenerateImageDescriptionsPayload
+from src.modules.media_descriptions.repository import MediaDescriptionsRepository
+from src.modules.media_descriptions.schemas import MediaForProcessing, MediaDataUpdate
 from src.shared.llm.image_description import ImageDescription
 from src.config import STORAGE_FOLDER
-from src.modules.embeddings.schemas import MediaForProcessing, MediaDataUpdate
 
 
 async def process_media_item(media_item: MediaForProcessing, image_describer: ImageDescription):
@@ -36,7 +36,7 @@ async def process_media_item(media_item: MediaForProcessing, image_describer: Im
                 tag_time=tag_time,
                 struct_desc_time=struct_desc_time
             )
-            await EmbeddingsRepository.update_media_data(update_data)
+            await MediaDescriptionsRepository.update_media_data(update_data)
     except Exception as e:
         print(f"Warning: Error processing image {media_item.media_id}: {e}")
 
@@ -46,7 +46,7 @@ async def background_process_by_export(export_id: UUID, model_name: str):
     page_size = 10
     page = 0
     while True:
-        media_to_process = await EmbeddingsRepository.get_media_for_processing_by_export_id(export_id, page_size, page * page_size)
+        media_to_process = await MediaDescriptionsRepository.get_media_for_processing_by_export_id(export_id, page_size, page * page_size)
         if not media_to_process:
             break
         for media_item in media_to_process:
@@ -62,7 +62,7 @@ async def background_process_by_post(post_id: UUID, model_name: str):
     page_size = 10
     page = 0
     while True:
-        media_to_process = await EmbeddingsRepository.get_media_for_processing_by_post_id(post_id, page_size, page * page_size)
+        media_to_process = await MediaDescriptionsRepository.get_media_for_processing_by_post_id(post_id, page_size, page * page_size)
         if not media_to_process:
             break
         for media_item in media_to_process:
@@ -75,7 +75,7 @@ async def background_process_by_post(post_id: UUID, model_name: str):
 
 async def background_process_single(media_id: UUID, model_name: str):
     image_describer = ImageDescription(model_name=model_name)
-    media_item = await EmbeddingsRepository.get_media_for_processing_by_media_id(media_id)
+    media_item = await MediaDescriptionsRepository.get_media_for_processing_by_media_id(media_id)
     if media_item:
         await process_media_item(media_item, image_describer)
     print(f"Finished background processing for single media: {media_id}")

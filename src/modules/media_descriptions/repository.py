@@ -6,10 +6,10 @@ import psycopg
 from psycopg import sql
 from psycopg.rows import dict_row
 
-from src.modules.embeddings.schemas import MediaForProcessing, MediaDataUpdate
+from src.modules.media_descriptions.schemas import MediaForProcessing, MediaDataUpdate
 
 
-class EmbeddingsRepository:
+class MediaDescriptionsRepository:
     @classmethod
     async def get_media_for_processing_by_export_id(cls, export_id: UUID, limit: int, offset: int) -> List[MediaForProcessing]:
         async with await psycopg.AsyncConnection.connect(
