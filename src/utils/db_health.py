@@ -11,7 +11,7 @@ async def check_psql_connection():
     try:
         # Use async connection
         conn = await psycopg.AsyncConnection.connect(
-            dbname=config.DB_NAME,
+            dbname="postgres",
             user=config.DB_USER,
             password=config.DB_PASSWORD,
             host=config.DB_HOST,
