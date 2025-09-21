@@ -11,7 +11,7 @@ class OpenAIEmbedder:
         self.model_name = model_name
         self.client = OpenAI(
             base_url=LLM_API_URL,
-            api_key="not-needed" # required even if not used by the server
+            api_key="not-needed"  # required even if not used by the server
         )
 
     def get_embedding(self, text: List[str]) -> torch.Tensor:
@@ -32,4 +32,5 @@ class OpenAIEmbedder:
         )
 
         embedding = response.data[0].embedding
-        return torch.tensor(embedding).unsqueeze(0) # Return as a 2D tensor [1, dim]
+        # Return as a 2D tensor [1, dim]
+        return torch.tensor(embedding).unsqueeze(0)

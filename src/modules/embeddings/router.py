@@ -27,7 +27,8 @@ async def generate_embeddings_by_export_handler(
             tg_export_id, payload, background_tasks
         )
         return ApiResponse(
-            data=PlainDataResponse(message="No errors at start, processing started.")
+            data=PlainDataResponse(
+                message="No errors at start, processing started.")
         )
     except Exception as e:
         return ApiResponse(data=PlainDataResponse(error=str(e)))

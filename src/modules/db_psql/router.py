@@ -28,6 +28,7 @@ async def get_database_list_handler() -> ApiResponse[list[str] | PlainDataRespon
     except Exception as e:
         return ApiResponse(data=PlainDataResponse(error=str(e)))
 
+
 @router.post("/create_new_database/{dbname}", description="Initialize new database inside psql container with given name")
 async def create_new_database_handler(
     dbname: Annotated[str, Path(
@@ -41,6 +42,7 @@ async def create_new_database_handler(
         return ApiResponse(data=PlainDataResponse(message=f"Done!"))
     except Exception as e:
         return ApiResponse(data=PlainDataResponse(error=str(e)))
+
 
 @router.delete("/delete_database/{dbname}", description="Delete database inside psql container with given name")
 async def delete_database_handler(
@@ -56,6 +58,7 @@ async def delete_database_handler(
     except Exception as e:
         return ApiResponse(data=PlainDataResponse(error=str(e)))
 
+
 @router.post("/recreate_public_schema/{dbname}", description="Recreate public schema in given database")
 async def recreate_public_schema_handler(
     dbname: Annotated[str, Path(
@@ -70,6 +73,7 @@ async def recreate_public_schema_handler(
     except Exception as e:
         return ApiResponse(data=PlainDataResponse(error=str(e)))
 
+
 @router.post("/create_tables/{dbname}", description="Initialize all tables in given database")
 async def create_tables_handler(
     dbname: Annotated[str, Path(
@@ -83,6 +87,7 @@ async def create_tables_handler(
         return ApiResponse(data=PlainDataResponse(message=f"Done!"))
     except Exception as e:
         return ApiResponse(data=PlainDataResponse(error=str(e)))
+
 
 @router.post("/setup_db/{dbname}", description="Setup database with full cycle: create/recreate and initialize tables")
 async def setup_database_handler(

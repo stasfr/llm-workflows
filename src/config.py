@@ -4,13 +4,16 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+
 @overload
 def get_env_var(var_name: str, unsafe: Literal[False] = False) -> str:
     ...
 
+
 @overload
 def get_env_var(var_name: str, unsafe: Literal[True]) -> Optional[str]:
     ...
+
 
 def get_env_var(var_name: str, unsafe: bool = False) -> Optional[str]:
     """
@@ -32,7 +35,8 @@ def get_env_var(var_name: str, unsafe: bool = False) -> Optional[str]:
         if unsafe:
             return None
         else:
-            raise ValueError(f"The '{var_name}' environment variable must be set.")
+            raise ValueError(
+                f"The '{var_name}' environment variable must be set.")
     return value
 
 

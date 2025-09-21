@@ -13,6 +13,7 @@ async def get_database_list() -> list[str]:
 
     return filtered_databases
 
+
 async def create_new_database_by_name(dbname: str) -> None:
     if not dbname:
         raise ValueError("Database name is required")
@@ -21,6 +22,7 @@ async def create_new_database_by_name(dbname: str) -> None:
         raise ValueError("Database name is not allowed")
 
     await DatabasesRepository.add_one(dbname)
+
 
 async def delete_data_base_by_name(dbname: str) -> None:
     if not dbname:
@@ -31,11 +33,14 @@ async def delete_data_base_by_name(dbname: str) -> None:
 
     await DatabasesRepository.delete(dbname)
 
+
 async def recreate_public_schema(dbname: str) -> None:
     await DatabasesRepository.recreate_public_schema(dbname)
 
+
 async def create_tables(dbname: str) -> None:
     await DatabasesRepository.create_tables(dbname)
+
 
 async def setup_database(dbname: str) -> None:
     if not dbname:

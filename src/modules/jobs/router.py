@@ -62,7 +62,8 @@ async def update_job_status_handler(
         description="Id of the job to be updated",
         examples=["3fa85f64-5717-4562-b3fc-2c963f66afa6"]
     )],
-    payload: Annotated[UpdateJobStatus, Body(description="Job status update payload")]
+    payload: Annotated[UpdateJobStatus, Body(
+        description="Job status update payload")]
 ) -> ApiResponse[JobModel] | ApiResponse[PlainDataResponse]:
     try:
         updated_job = await update_job_status(job_id, payload)

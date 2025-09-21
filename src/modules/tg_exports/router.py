@@ -5,7 +5,7 @@ from fastapi import APIRouter, Body, Path
 
 from src.modules.tg_exports.services import get_all_telegram_exports, add_telegram_export, update_telegram_export, delete_telegram_export, get_telegram_export
 from src.modules.tg_exports.schemas import TgExportModel
-from src.modules.tg_exports.dto import AddTgExport, DeleteTgExport, UpdateTgExport
+from src.modules.tg_exports.dto import AddTgExport, UpdateTgExport
 from src.schemas import PlainDataResponse, ApiResponse
 
 
@@ -26,7 +26,8 @@ async def get_all_telegram_exports_handler() -> ApiResponse[List[TgExportModel] 
 
 @router.post("/", description="Add a new Telegram channel export.")
 async def add_telegram_export_handler(
-    payload: Annotated[AddTgExport, Body(description="Telegram channel export creation payload")]
+    payload: Annotated[AddTgExport, Body(
+        description="Telegram channel export creation payload")]
 ) -> ApiResponse[TgExportModel] | ApiResponse[PlainDataResponse]:
     try:
         new_tg_export = await add_telegram_export(payload)
@@ -57,7 +58,8 @@ async def update_telegram_export_handler(
         description="Id of the Telegram export to be deleted",
         examples=["3fa85f64-5717-4562-b3fc-2c963f66afa6"]
     )],
-    payload: Annotated[UpdateTgExport, Body(description="Telegram channel export creation payload")]
+    payload: Annotated[UpdateTgExport, Body(
+        description="Telegram channel export creation payload")]
 ) -> ApiResponse[TgExportModel] | ApiResponse[PlainDataResponse]:
     try:
         updated_tg_export = await update_telegram_export(tg_export_id, payload)

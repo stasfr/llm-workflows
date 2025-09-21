@@ -10,6 +10,7 @@ async def get_all_telegram_posts_media_data() -> List[TgPostsMediaDataModel]:
     all_tg_posts_media_data = await TgPostsMediaDataRepository.get_all()
     return all_tg_posts_media_data
 
+
 async def add_telegram_post_media_data(payload: AddTgPostsMediaData) -> TgPostsMediaDataModel:
     new_tg_post_media_data = await TgPostsMediaDataRepository.add_one(payload)
 
@@ -18,8 +19,10 @@ async def add_telegram_post_media_data(payload: AddTgPostsMediaData) -> TgPostsM
 
     return new_tg_post_media_data
 
+
 async def delete_telegram_post_media_data(media_data_id: UUID) -> None:
     await TgPostsMediaDataRepository.delete(media_data_id)
+
 
 async def update_telegram_post_media_data(media_data_id: UUID, payload: UpdateTgPostsMediaData) -> TgPostsMediaDataModel:
     updated_tg_post_media_data = await TgPostsMediaDataRepository.update(media_data_id, payload)
@@ -28,6 +31,7 @@ async def update_telegram_post_media_data(media_data_id: UUID, payload: UpdateTg
         raise ValueError("Failed to update Telegram post media data")
 
     return updated_tg_post_media_data
+
 
 async def get_telegram_post_media_data(media_data_id: UUID) -> TgPostsMediaDataModel:
     tg_post_media_data_item = await TgPostsMediaDataRepository.get_one_by_id(media_data_id)

@@ -5,6 +5,7 @@ import json
 import ijson
 from typing import Generator, Dict, Any, List, Optional, Callable
 
+
 def stream_plain_tg_data(filename: str) -> Generator[Dict[str, Any], None, None]:
     try:
         with open(filename, 'r', encoding='utf-8') as f:
@@ -16,13 +17,15 @@ def stream_plain_tg_data(filename: str) -> Generator[Dict[str, Any], None, None]
         print(f"Ошибка: Не удалось прочитать JSON из файла {filename}.")
         raise
 
+
 def create_labeled_data(
     project_name: str,
     project_snapshot: str,
     progress_callback: Optional[Callable[[int, int], None]] = None
 ) -> None:
     # Constants from process_tg_data.py
-    PROJECT_DIR = os.path.join(STORAGE_FOLDER, 'projects', f"{project_name}_{project_snapshot}")
+    PROJECT_DIR = os.path.join(
+        STORAGE_FOLDER, 'projects', f"{project_name}_{project_snapshot}")
 
     RAW_DATA_FILE = os.path.join(PROJECT_DIR, 'raw_data.json')
     GARBAGE_FILE = os.path.join(PROJECT_DIR, 'garbage.json')
@@ -37,7 +40,8 @@ def create_labeled_data(
                 garbage_ids = garbage_data.get('garbage_ids', [])
                 garbage_list = garbage_data.get('garbage_list', [])
             except json.JSONDecodeError:
-                print(f"Warning: Could not decode garbage file at {GARBAGE_FILE}")
+                print(
+                    f"Warning: Could not decode garbage file at {GARBAGE_FILE}")
 
     try:
         plain_tg_data = stream_plain_tg_data(RAW_DATA_FILE)
@@ -47,7 +51,8 @@ def create_labeled_data(
         for item in plain_tg_data:
             if item.get('type') == 'message':
                 text_entities = item.get('text_entities', [])
-                text = "".join(entity.get('text', '') for entity in text_entities)
+                text = "".join(entity.get('text', '')
+                               for entity in text_entities)
 
                 if text:
                     clean_text = text

@@ -41,39 +41,39 @@ class TgPostsRepository:
             else None
         )
         async with await psycopg.AsyncConnection.connect(
-              user=DB_USER,
-              password=DB_PASSWORD,
-              host=DB_HOST,
-              port=DB_PORT,
-              dbname=DB_NAME,
-          ) as aconn:
-              async with aconn.cursor(row_factory=class_row(TgPostModel)) as acur:
-                  await acur.execute(sql.SQL("""
+            user=DB_USER,
+            password=DB_PASSWORD,
+            host=DB_HOST,
+            port=DB_PORT,
+            dbname=DB_NAME,
+        ) as aconn:
+            async with aconn.cursor(row_factory=class_row(TgPostModel)) as acur:
+                await acur.execute(sql.SQL("""
                       INSERT INTO posts (post_id, from_id, date, edited, post_text, reactions)
                       VALUES (%s, %s, %s, %s, %s, %s)
                       RETURNING *
                       """), (
-                          payload.post_id,
-                          payload.from_id,
-                          payload.date,
-                          payload.edited,
-                          payload.post_text,
-                          reactions_json
-                      ))
-                  new_tg_post = await acur.fetchone()
-                  return new_tg_post
+                    payload.post_id,
+                    payload.from_id,
+                    payload.date,
+                    payload.edited,
+                    payload.post_text,
+                    reactions_json
+                ))
+                new_tg_post = await acur.fetchone()
+                return new_tg_post
 
     @classmethod
     async def delete(cls, post_id: UUID) -> None:
         async with await psycopg.AsyncConnection.connect(
-              user=DB_USER,
-              password=DB_PASSWORD,
-              host=DB_HOST,
-              port=DB_PORT,
-              dbname=DB_NAME,
-          ) as aconn:
-              async with aconn.cursor() as acur:
-                  await acur.execute(sql.SQL("DELETE FROM posts WHERE id = %s"), (post_id,))
+            user=DB_USER,
+            password=DB_PASSWORD,
+            host=DB_HOST,
+            port=DB_PORT,
+            dbname=DB_NAME,
+        ) as aconn:
+            async with aconn.cursor() as acur:
+                await acur.execute(sql.SQL("DELETE FROM posts WHERE id = %s"), (post_id,))
 
     @classmethod
     async def update(cls, post_id: UUID, payload: UpdateTgPost) -> Optional[TgPostModel]:
@@ -83,30 +83,30 @@ class TgPostsRepository:
             else None
         )
         async with await psycopg.AsyncConnection.connect(
-              user=DB_USER,
-              password=DB_PASSWORD,
-              host=DB_HOST,
-              port=DB_PORT,
-              dbname=DB_NAME,
-          ) as aconn:
-              async with aconn.cursor(row_factory=class_row(TgPostModel)) as acur:
-                  await acur.execute(sql.SQL("""
+            user=DB_USER,
+            password=DB_PASSWORD,
+            host=DB_HOST,
+            port=DB_PORT,
+            dbname=DB_NAME,
+        ) as aconn:
+            async with aconn.cursor(row_factory=class_row(TgPostModel)) as acur:
+                await acur.execute(sql.SQL("""
                       UPDATE posts
                       SET post_id = %s, from_id = %s, date = %s, edited = %s, post_text = %s, reactions = %s, has_media = %s
                       WHERE id = %s
                       RETURNING *
                       """), (
-                          payload.post_id,
-                          payload.from_id,
-                          payload.date,
-                          payload.edited,
-                          payload.post_text,
-                          reactions_json,
-                          payload.has_media,
-                          post_id
-                      ))
-                  updated_tg_post = await acur.fetchone()
-                  return updated_tg_post
+                    payload.post_id,
+                    payload.from_id,
+                    payload.date,
+                    payload.edited,
+                    payload.post_text,
+                    reactions_json,
+                    payload.has_media,
+                    post_id
+                ))
+                updated_tg_post = await acur.fetchone()
+                return updated_tg_post
 
     @classmethod
     async def get_one_by_id(cls, post_id: UUID) -> Optional[TgPostModel]:

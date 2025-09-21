@@ -1,6 +1,7 @@
 import json
 import ijson
 
+
 def count_json_items(filename: str, path: str) -> int:
     try:
         with open(filename, 'r', encoding='utf-8') as f:

@@ -4,10 +4,10 @@ from typing import List, Annotated
 from fastapi import APIRouter, Body, Path
 
 from src.modules.tg_posts.services import (
-    get_all_telegram_posts, 
-    add_telegram_post, 
-    update_telegram_post, 
-    delete_telegram_post, 
+    get_all_telegram_posts,
+    add_telegram_post,
+    update_telegram_post,
+    delete_telegram_post,
     get_telegram_post,
     get_telegram_posts_by_export_id,
     get_telegram_posts_by_channel_id
@@ -34,7 +34,8 @@ async def get_all_telegram_posts_handler() -> ApiResponse[List[TgPostModel] | Pl
 
 @router.post("/", description="Add a new Telegram post.")
 async def add_telegram_post_handler(
-    payload: Annotated[AddTgPost, Body(description="Telegram post creation payload")]
+    payload: Annotated[AddTgPost, Body(
+        description="Telegram post creation payload")]
 ) -> ApiResponse[TgPostModel] | ApiResponse[PlainDataResponse]:
     try:
         new_tg_post = await add_telegram_post(payload)
@@ -65,7 +66,8 @@ async def update_telegram_post_handler(
         description="Id of the Telegram post to be updated",
         examples=["3fa85f64-5717-4562-b3fc-2c963f66afa6"]
     )],
-    payload: Annotated[UpdateTgPost, Body(description="Telegram post update payload")]
+    payload: Annotated[UpdateTgPost, Body(
+        description="Telegram post update payload")]
 ) -> ApiResponse[TgPostModel] | ApiResponse[PlainDataResponse]:
     try:
         updated_tg_post = await update_telegram_post(post_id, payload)

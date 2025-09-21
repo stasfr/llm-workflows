@@ -33,7 +33,6 @@ class ParsersRepository:
             media_names = [media.name for media in payload.media]
             media_mime_types = [media.mime_type for media in payload.media]
 
-
         async with await psycopg.AsyncConnection.connect(
             user=DB_USER,
             password=DB_PASSWORD,

@@ -1,5 +1,4 @@
-import json
-from typing import List, Optional
+from typing import List
 from uuid import UUID
 from src.config import DB_USER, DB_PASSWORD, DB_HOST, DB_PORT, DB_NAME
 import psycopg

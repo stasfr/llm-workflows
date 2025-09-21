@@ -1,3 +1,4 @@
+from transformers import TextStreamer
 import torch
 import os
 from unsloth import FastLanguageModel
@@ -12,29 +13,29 @@ login(token=HF_TOKEN)
 
 # 1. Загрузка модели и токенизатора
 max_seq_length = 2048
-dtype = None # None для автоматического определения
-load_in_4bit = True # Используем 4-битную квантизацию для экономии памяти
+dtype = None  # None для автоматического определения
+load_in_4bit = True  # Используем 4-битную квантизацию для экономии памяти
 
 model, tokenizer = FastLanguageModel.from_pretrained(
-    model_name = "unsloth/gemma-3-270m-unsloth-bnb-4bit",
-    max_seq_length = max_seq_length,
-    dtype = dtype,
-    load_in_4bit = load_in_4bit,
+    model_name="unsloth/gemma-3-270m-unsloth-bnb-4bit",
+    max_seq_length=max_seq_length,
+    dtype=dtype,
+    load_in_4bit=load_in_4bit,
 )
 
 # 2. Добавление LoRA адаптеров для эффективной настройки
 model = FastLanguageModel.get_peft_model(
     model,
-    r = 16,
-    target_modules = ["q_proj", "k_proj", "v_proj", "o_proj",
-                      "gate_proj", "up_proj", "down_proj"],
-    lora_alpha = 16,
-    lora_dropout = 0,
-    bias = "none",
-    use_gradient_checkpointing = False,
-    random_state = 3407,
-    use_rslora = False,
-    loftq_config = None,
+    r=16,
+    target_modules=["q_proj", "k_proj", "v_proj", "o_proj",
+                    "gate_proj", "up_proj", "down_proj"],
+    lora_alpha=16,
+    lora_dropout=0,
+    bias="none",
+    use_gradient_checkpointing=False,
+    random_state=3407,
+    use_rslora=False,
+    loftq_config=None,
 )
 
 # 3. Подготовка данных из локального JSON
@@ -49,43 +50,46 @@ prompt_template = """### Instruction:
 {}"""
 
 EOS_TOKEN = tokenizer.eos_token
+
+
 def formatting_prompts_func(examples):
-    inputs     = examples["text"]
-    outputs    = examples["result"]
+    inputs = examples["text"]
+    outputs = examples["result"]
     texts = []
     for input_text, output_text in zip(inputs, outputs):
         # Форматируем текст по шаблону и добавляем токен конца строки
         text = prompt_template.format(input_text, output_text) + EOS_TOKEN
         texts.append(text)
-    return { "text" : texts, }
+    return {"text": texts, }
+
 
 # Загружаем JSON файл
 dataset = load_dataset("json", data_files="dataset.json", split="train")
-dataset = dataset.map(formatting_prompts_func, batched = True,)
+dataset = dataset.map(formatting_prompts_func, batched=True,)
 
 # 4. Настройка и запуск обучения
 trainer = SFTTrainer(
-    model = model,
-    tokenizer = tokenizer,
-    train_dataset = dataset,
-    dataset_text_field = "text",
-    max_seq_length = max_seq_length,
-    dataset_num_proc = 2,
-    packing = False,
-    args = TrainingArguments(
-        per_device_train_batch_size = 8,
-        gradient_accumulation_steps = 1,
-        warmup_steps = 5,
-        num_train_epochs = 2,
-        learning_rate = 2e-4,
-        fp16 = not torch.cuda.is_bf16_supported(),
-        bf16 = torch.cuda.is_bf16_supported(),
-        logging_steps = 1,
-        optim = "adamw_8bit",
-        weight_decay = 0.01,
-        lr_scheduler_type = "linear",
-        seed = 3407,
-        output_dir = "outputs",
+    model=model,
+    tokenizer=tokenizer,
+    train_dataset=dataset,
+    dataset_text_field="text",
+    max_seq_length=max_seq_length,
+    dataset_num_proc=2,
+    packing=False,
+    args=TrainingArguments(
+        per_device_train_batch_size=8,
+        gradient_accumulation_steps=1,
+        warmup_steps=5,
+        num_train_epochs=2,
+        learning_rate=2e-4,
+        fp16=not torch.cuda.is_bf16_supported(),
+        bf16=torch.cuda.is_bf16_supported(),
+        logging_steps=1,
+        optim="adamw_8bit",
+        weight_decay=0.01,
+        lr_scheduler_type="linear",
+        seed=3407,
+        output_dir="outputs",
     ),
 )
 
@@ -100,7 +104,6 @@ print("Model saved successfully.")
 
 # 6. Пример инференса после обучения
 print("\nRunning inference example...")
-from transformers import TextStreamer
 
 # ЗАПОЛНИТЕ ЭТО ПОЛЕ ВАШИМ ТЕКСТОМ
 input_text = """
@@ -122,7 +125,7 @@ input_text = """
 """
 
 prompt = prompt_template.format(
-    input_text, # Текст для инференса
+    input_text,  # Текст для инференса
     "",         # Пустой ответ для генерации
 )
 

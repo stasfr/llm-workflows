@@ -2,6 +2,7 @@ from uuid import UUID
 from pydantic import BaseModel
 from typing import Optional, Dict
 
+
 class AddTgPostsMediaData(BaseModel):
     media_id: UUID
     description: Optional[str] = None

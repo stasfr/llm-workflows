@@ -31,7 +31,8 @@ async def generate_descriptions_by_export_handler(
             tg_export_id, payload, background_tasks
         )
         return ApiResponse(
-            data=PlainDataResponse(message="No errors at start, processing started.")
+            data=PlainDataResponse(
+                message="No errors at start, processing started.")
         )
     except Exception as e:
         return ApiResponse(data=PlainDataResponse(error=str(e)))
@@ -51,7 +52,8 @@ async def generate_descriptions_by_post_handler(
             tg_post_id, payload, background_tasks
         )
         return ApiResponse(
-            data=PlainDataResponse(message="No errors at start, processing started.")
+            data=PlainDataResponse(
+                message="No errors at start, processing started.")
         )
     except Exception as e:
         return ApiResponse(data=PlainDataResponse(error=str(e)))
@@ -71,7 +73,8 @@ async def generate_descriptions_by_media_handler(
             tg_media_id, payload, background_tasks
         )
         return ApiResponse(
-            data=PlainDataResponse(message="No errors at start, processing started.")
+            data=PlainDataResponse(
+                message="No errors at start, processing started.")
         )
     except Exception as e:
         return ApiResponse(data=PlainDataResponse(error=str(e)))

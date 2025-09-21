@@ -22,6 +22,7 @@ def get_collection_list_handler() -> ApiResponse[list[str] | PlainDataResponse]:
     except Exception as e:
         return ApiResponse(data=PlainDataResponse(error=str(e)))
 
+
 @router.post("/create_collection", description="Create a new collection in Milvus")
 def create_new_collection_handler(
     payload: CreateCollectionPayload = Body(...)
@@ -31,6 +32,7 @@ def create_new_collection_handler(
         return ApiResponse(data=PlainDataResponse(message=f"Collection '{payload.collection_name}' created successfully."))
     except Exception as e:
         return ApiResponse(data=PlainDataResponse(error=str(e)))
+
 
 @router.delete("/delete_collection", description="Delete a collection in Milvus")
 def delete_collection_handler(

@@ -5,12 +5,14 @@ from typing import List, Dict, Any
 
 from config import STORAGE_FOLDER
 
+
 def upsample_positive_records(
     project_name: str,
     project_snapshot: str,
     upsample_factor: int = 10,
 ) -> None:
-    PROJECT_DIR = os.path.join(STORAGE_FOLDER, 'projects', f"{project_name}_{project_snapshot}")
+    PROJECT_DIR = os.path.join(
+        STORAGE_FOLDER, 'projects', f"{project_name}_{project_snapshot}")
     LABELED_FILE = os.path.join(PROJECT_DIR, 'labeled_data.json')
     UPSAMPLED_FILE = os.path.join(PROJECT_DIR, 'upsampled_labeled_data.json')
 

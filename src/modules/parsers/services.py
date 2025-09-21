@@ -25,13 +25,15 @@ def stream_raw_tg_data(filename: str) -> Generator[dict, None, None]:
     except json.JSONDecodeError:
         raise ValueError(f"Could not decode JSON from file {filename}")
 
+
 async def parse_raw_telegram_data(tg_export_id: UUID, payload: StartParsing) -> None:
     tg_export = await TgExportsRepository.get_one_by_id(tg_export_id)
 
     if not tg_export:
         raise ValueError(f"Telegram export with ID {tg_export_id} not found")
 
-    PROJECT_DIR = os.path.join(STORAGE_FOLDER, tg_export.data_path.lstrip('\\/'))
+    PROJECT_DIR = os.path.join(
+        STORAGE_FOLDER, tg_export.data_path.lstrip('\\/'))
 
     RAW_DATA_FILE = os.path.join(PROJECT_DIR, 'raw_data.json')
     GARBAGE_FILE = os.path.join(PROJECT_DIR, 'garbage.json')
@@ -46,7 +48,8 @@ async def parse_raw_telegram_data(tg_export_id: UUID, payload: StartParsing) -> 
                 garbage_ids = garbage_data.get('garbage_ids', [])
                 garbage_list = garbage_data.get('garbage_list', [])
             except json.JSONDecodeError:
-                raise ValueError(f"Could not decode garbage file at {GARBAGE_FILE}")
+                raise ValueError(
+                    f"Could not decode garbage file at {GARBAGE_FILE}")
 
     try:
         with open(RAW_DATA_FILE, 'r', encoding='utf-8') as f:
@@ -54,7 +57,6 @@ async def parse_raw_telegram_data(tg_export_id: UUID, payload: StartParsing) -> 
 
         if total_messages == 0:
             raise ValueError("No messages found in the file.")
-
 
         raw_tg_data = stream_raw_tg_data(RAW_DATA_FILE)
         result: list[CreatePost] = []
@@ -70,7 +72,8 @@ async def parse_raw_telegram_data(tg_export_id: UUID, payload: StartParsing) -> 
                     if message.text_entities or message.photo:
                         text = ""
                         if message.text_entities:
-                            text = "".join(entity.text for entity in message.text_entities)
+                            text = "".join(
+                                entity.text for entity in message.text_entities)
                             for garbage in garbage_list:
                                 text = text.replace(garbage, '')
                             text = text.strip()
@@ -79,7 +82,8 @@ async def parse_raw_telegram_data(tg_export_id: UUID, payload: StartParsing) -> 
                         if message.photo:
                             mime_type = message.mime_type
                             if not mime_type:
-                                file_ext = os.path.splitext(message.photo)[1].lower()
+                                file_ext = os.path.splitext(
+                                    message.photo)[1].lower()
                                 mime_types = {
                                     '.jpg': 'image/jpeg',
                                     '.jpeg': 'image/jpeg',

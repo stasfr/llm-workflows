@@ -13,7 +13,8 @@ from src.config import STORAGE_FOLDER
 
 
 async def process_media_item(media_item: MediaForProcessing, image_describer: ImageDescription):
-    image_path = os.path.join(STORAGE_FOLDER, media_item.photos_path.lstrip('\\/'), media_item.media_name)
+    image_path = os.path.join(
+        STORAGE_FOLDER, media_item.photos_path.lstrip('\\/'), media_item.media_name)
 
     if not os.path.exists(image_path):
         print(f"Warning: Image not found at {image_path}")
@@ -21,9 +22,11 @@ async def process_media_item(media_item: MediaForProcessing, image_describer: Im
 
     try:
         with Image.open(image_path) as img:
-            description, desc_usage, desc_time = image_describer.get_description(img)
+            description, desc_usage, desc_time = image_describer.get_description(
+                img)
             tag, tag_usage, tag_time = image_describer.get_tag(img)
-            structured_description, struct_desc_usage, struct_desc_time = image_describer.get_structured_description(img)
+            structured_description, struct_desc_usage, struct_desc_time = image_describer.get_structured_description(
+                img)
 
             update_data = MediaDataUpdate(
                 media_data_id=media_item.media_data_id,
@@ -119,7 +122,8 @@ async def start_image_description_generation_by_export(
     job_metadata = f"Process media for export with {export_id}"
     job = await add_job(AddJob(status=JobStatus.PENDING, metadata=job_metadata))
 
-    background_tasks.add_task(background_process_by_export, export_id, payload.model_name, job.id)
+    background_tasks.add_task(
+        background_process_by_export, export_id, payload.model_name, job.id)
 
 
 async def start_image_description_generation_by_post(
@@ -131,7 +135,8 @@ async def start_image_description_generation_by_post(
     job_metadata = f"Process media for post with {post_id}"
     job = await add_job(AddJob(status=JobStatus.PENDING, metadata=job_metadata))
 
-    background_tasks.add_task(background_process_by_post, post_id, payload.model_name, job.id)
+    background_tasks.add_task(
+        background_process_by_post, post_id, payload.model_name, job.id)
 
 
 async def start_image_description_generation_by_media(
@@ -143,4 +148,5 @@ async def start_image_description_generation_by_media(
     job_metadata = f"Process single media with {media_id}"
     job = await add_job(AddJob(status=JobStatus.PENDING, metadata=job_metadata))
 
-    background_tasks.add_task(background_process_single, media_id, payload.model_name, job.id)
+    background_tasks.add_task(
+        background_process_single, media_id, payload.model_name, job.id)

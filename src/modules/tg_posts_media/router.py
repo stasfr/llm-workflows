@@ -26,7 +26,8 @@ async def get_all_telegram_posts_media_handler() -> ApiResponse[List[TgPostMedia
 
 @router.post("/", description="Add a new Telegram post media.")
 async def add_telegram_post_media_handler(
-    payload: Annotated[AddTgPostMedia, Body(description="Telegram post media creation payload")]
+    payload: Annotated[AddTgPostMedia, Body(
+        description="Telegram post media creation payload")]
 ) -> ApiResponse[TgPostMediaModel] | ApiResponse[PlainDataResponse]:
     try:
         new_tg_post_media = await add_telegram_post_media(payload)
@@ -57,7 +58,8 @@ async def update_telegram_post_media_handler(
         description="Id of the Telegram post media to be updated",
         examples=["3fa85f64-5717-4562-b3fc-2c963f66afa6"]
     )],
-    payload: Annotated[UpdateTgPostMedia, Body(description="Telegram post media update payload")]
+    payload: Annotated[UpdateTgPostMedia, Body(
+        description="Telegram post media update payload")]
 ) -> ApiResponse[TgPostMediaModel] | ApiResponse[PlainDataResponse]:
     try:
         updated_tg_post_media = await update_telegram_post_media(media_id, payload)

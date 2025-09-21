@@ -9,11 +9,13 @@ from pymilvus import (
 )
 from src.config import MILVUS_HOST, MILVUS_PORT
 
+
 class MilvusRepository:
     @staticmethod
     def _connect():
         if "milvus_ops" not in connections.list_connections():
-            connections.connect(alias="milvus_ops", host=MILVUS_HOST, port=MILVUS_PORT)
+            connections.connect(alias="milvus_ops",
+                                host=MILVUS_HOST, port=MILVUS_PORT)
         # Ensure we are using the default database
         db.using_database("default", using="milvus_ops")
 
@@ -37,10 +39,12 @@ class MilvusRepository:
         try:
             # Define a default schema
             fields = [
-                FieldSchema(name="pk", dtype=DataType.INT64, is_primary=True, auto_id=True),
+                FieldSchema(name="pk", dtype=DataType.INT64,
+                            is_primary=True, auto_id=True),
                 FieldSchema(name="psql_id", dtype=DataType.VARCHAR, max_length=64,
                             description="UUID of the corresponding entry in PostgreSQL"),
-                FieldSchema(name="embedding", dtype=DataType.FLOAT_VECTOR, dim=dim)
+                FieldSchema(name="embedding",
+                            dtype=DataType.FLOAT_VECTOR, dim=dim)
             ]
             schema = CollectionSchema(
                 fields,
@@ -58,7 +62,8 @@ class MilvusRepository:
     def delete_collection(cls, collection_name: str) -> None:
         cls._connect()
         try:
-            utility.drop_collection(collection_name=collection_name, using="milvus_ops")
+            utility.drop_collection(
+                collection_name=collection_name, using="milvus_ops")
         finally:
             cls._disconnect()
 
@@ -66,7 +71,8 @@ class MilvusRepository:
     def has_collection(cls, collection_name: str) -> bool:
         cls._connect()
         try:
-            result = utility.has_collection(collection_name=collection_name, using="milvus_ops")
+            result = utility.has_collection(
+                collection_name=collection_name, using="milvus_ops")
         finally:
             cls._disconnect()
         return result

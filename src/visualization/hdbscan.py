@@ -10,6 +10,7 @@ from pymilvus import connections, Collection
 
 from typing import Optional, Callable
 
+
 def visualize_hdbscan_clusters(
     collection_name: str,
     project_name: str,
@@ -50,13 +51,14 @@ def visualize_hdbscan_clusters(
     """
     total_stages = 4
 
-    PROJECT_DIR = os.path.join(STORAGE_FOLDER, 'projects', f"{project_name}_{project_snapshot}")
+    PROJECT_DIR = os.path.join(
+        STORAGE_FOLDER, 'projects', f"{project_name}_{project_snapshot}")
 
     # Generate dynamic output file names
     file_suffix = f"mcs_{min_cluster_size}_ms_{min_samples}_nn_{umap_n_neighbors}_md_{umap_min_dist}"
     output_file = os.path.join(PROJECT_DIR, f'hdbscan_viz_{file_suffix}.html')
-    clusters_output_file = os.path.join(PROJECT_DIR, f'hdbscan_clusters_{file_suffix}.csv')
-
+    clusters_output_file = os.path.join(
+        PROJECT_DIR, f'hdbscan_clusters_{file_suffix}.csv')
 
     # 1. Connect and fetch all data from Milvus
     connections.connect("default", uri=MILVUS_ADDRESS)
@@ -105,7 +107,8 @@ def visualize_hdbscan_clusters(
     df['cluster'] = clusterer.labels_
     df[['x', 'y']] = embedding_2d
 
-    n_clusters = len(set(clusterer.labels_)) - (1 if -1 in clusterer.labels_ else 0)
+    n_clusters = len(set(clusterer.labels_)) - \
+        (1 if -1 in clusterer.labels_ else 0)
     n_noise = np.sum(clusterer.labels_ == -1)
 
     if progress_callback:
@@ -128,7 +131,8 @@ def visualize_hdbscan_clusters(
         color='cluster_str',
         color_discrete_map={"-1": "grey"},
         category_orders={"cluster_str": sorted_cluster_labels_str},
-        hover_data={'x': False, 'y': False, 'cluster': True, 'post_id': True, 'hover_text': True},
+        hover_data={'x': False, 'y': False, 'cluster': True,
+                    'post_id': True, 'hover_text': True},
         title=title,
         labels={'cluster_str': 'Кластер', 'hover_text': 'Текст'}
     )

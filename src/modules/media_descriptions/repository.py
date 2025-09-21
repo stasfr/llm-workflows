@@ -50,7 +50,7 @@ class MediaDescriptionsRepository:
 
     @classmethod
     async def get_media_for_processing_by_media_id(cls, media_id: UUID) -> Optional[MediaForProcessing]:
-         async with await psycopg.AsyncConnection.connect(
+        async with await psycopg.AsyncConnection.connect(
             user=DB_USER, password=DB_PASSWORD, host=DB_HOST, port=DB_PORT, dbname=DB_NAME
         ) as aconn:
             async with aconn.cursor(row_factory=dict_row) as acur:
@@ -83,7 +83,8 @@ class MediaDescriptionsRepository:
                     data.structured_description,
                     json.dumps(data.desc_usage) if data.desc_usage else None,
                     json.dumps(data.tag_usage) if data.tag_usage else None,
-                    json.dumps(data.struct_desc_usage) if data.struct_desc_usage else None,
+                    json.dumps(
+                        data.struct_desc_usage) if data.struct_desc_usage else None,
                     data.desc_time,
                     data.tag_time,
                     data.struct_desc_time,

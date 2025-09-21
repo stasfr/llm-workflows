@@ -10,6 +10,7 @@ from pymilvus import connections, Collection
 
 from typing import Optional, Callable
 
+
 def visualize_clusters(
     collection_name: str,
     project_name: str,
@@ -39,9 +40,11 @@ def visualize_clusters(
     """
     total_stages = 3
 
-    PROJECT_DIR = os.path.join(STORAGE_FOLDER, 'projects', f"{project_name}_{project_snapshot}")
+    PROJECT_DIR = os.path.join(
+        STORAGE_FOLDER, 'projects', f"{project_name}_{project_snapshot}")
 
-    HTML_OUTPUT_FILE = os.path.join(PROJECT_DIR, f'cluster_visualization_{n_clusters}_clusters.html')
+    HTML_OUTPUT_FILE = os.path.join(
+        PROJECT_DIR, f'cluster_visualization_{n_clusters}_clusters.html')
     CSV_OUTPUT_FILE = os.path.join(PROJECT_DIR, f'clusters_{n_clusters}.csv')
 
     connections.connect("default", uri=MILVUS_ADDRESS)
@@ -54,7 +57,8 @@ def visualize_clusters(
         umap_sample_size = num_entities
 
     # 1. KMeans Clustering
-    kmeans = MiniBatchKMeans(n_clusters=n_clusters, random_state=42, batch_size=batch_size, n_init='auto')
+    kmeans = MiniBatchKMeans(
+        n_clusters=n_clusters, random_state=42, batch_size=batch_size, n_init='auto')
     reducer = umap.UMAP(n_components=2, random_state=42)
 
     sample_vectors = []
@@ -72,7 +76,8 @@ def visualize_clusters(
         )
 
         if not result:
-            print(f"Внимание: в коллекции оказалось меньше данных ({len(sample_vectors)}), чем запрошено для umap_sample_size.")
+            print(
+                f"Внимание: в коллекции оказалось меньше данных ({len(sample_vectors)}), чем запрошено для umap_sample_size.")
             break
 
         sample_vectors.extend([item['vector'] for item in result])
@@ -137,12 +142,14 @@ def visualize_clusters(
         x='x',
         y='y',
         color='cluster',
-        hover_data={'x': False, 'y': False, 'cluster': True, 'post_id': True, 'hover_text': True},
+        hover_data={'x': False, 'y': False, 'cluster': True,
+                    'post_id': True, 'hover_text': True},
         title=f'Визуализация кластеров сообщений (n={n_clusters})',
         labels={'cluster': 'Кластер', 'hover_text': 'Текст'}
     )
     fig.update_traces(marker=dict(size=5, opacity=0.8))
-    fig.update_layout(legend_title_text='Кластеры', xaxis_title="UMAP 1", yaxis_title="UMAP 2", template="plotly_dark")
+    fig.update_layout(legend_title_text='Кластеры', xaxis_title="UMAP 1",
+                      yaxis_title="UMAP 2", template="plotly_dark")
 
     fig.write_html(HTML_OUTPUT_FILE)
 

@@ -15,9 +15,11 @@ MimeType = Literal[
     'audio/ogg'
 ]
 
+
 class MessageType(str, Enum):
     Service = 'service'
     Message = 'message'
+
 
 MessageAction = Literal['create_channel', 'pin_message']
 
@@ -29,10 +31,12 @@ MediaType = Literal[
     'voice_message'
 ]
 
+
 class Answer(BaseModel):
     text: str
     voters: int
     chosen: bool
+
 
 class Poll(BaseModel):
     question: str
@@ -40,18 +44,22 @@ class Poll(BaseModel):
     total_voters: int
     answers: List[Answer]
 
+
 class ReactionType(str, Enum):
     Emoji = 'emoji'
     Paid = 'paid'
+
 
 class PaidReaction(BaseModel):
     type: Literal[ReactionType.Paid]
     count: int
 
+
 class EmojiReaction(BaseModel):
     type: Literal[ReactionType.Emoji]
     count: int
     emoji: str
+
 
 Reactions = Union[EmojiReaction, PaidReaction]
 
@@ -74,6 +82,7 @@ TextEntityType = Literal[
     'hashtag'
 ]
 
+
 class TextEntity(BaseModel):
     type: TextEntityType
     text: str
@@ -81,12 +90,14 @@ class TextEntity(BaseModel):
     document_id: Optional[str] = None
     collapsed: Optional[bool] = None
 
+
 class MessageBase(BaseModel):
     id: int
-    date: datetime # 2021-10-04T21:33:22
+    date: datetime  # 2021-10-04T21:33:22
     date_unixtime: str
     text: Optional[Union[str, List[Union[TextEntity, str]]]] = None
     text_entities: Optional[List[TextEntity]] = None
+
 
 class Service(MessageBase):
     type: Literal[MessageType.Service]
@@ -96,12 +107,13 @@ class Service(MessageBase):
     title: str
     message_id: Optional[int] = None
 
+
 class Message(MessageBase):
     type: Literal[MessageType.Message]
     from_: str = Field(alias="from")
     from_id: str
-    edited: Optional[datetime] = None # 2021-10-04T21:33:22
-    edited_unixtime: Optional[datetime] = None # 2021-10-04T21:33:22
+    edited: Optional[datetime] = None  # 2021-10-04T21:33:22
+    edited_unixtime: Optional[datetime] = None  # 2021-10-04T21:33:22
     photo: Optional[str] = None
     photo_file_size: Optional[int] = None
     width: Optional[int] = None

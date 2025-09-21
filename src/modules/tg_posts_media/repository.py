@@ -36,60 +36,60 @@ class TgPostsMediaRepository:
     @classmethod
     async def add_one(cls, payload: AddTgPostMedia) -> Optional[TgPostMediaModel]:
         async with await psycopg.AsyncConnection.connect(
-              user=DB_USER,
-              password=DB_PASSWORD,
-              host=DB_HOST,
-              port=DB_PORT,
-              dbname=DB_NAME,
-          ) as aconn:
-              async with aconn.cursor(row_factory=class_row(TgPostMediaModel)) as acur:
-                  await acur.execute(sql.SQL("""
+            user=DB_USER,
+            password=DB_PASSWORD,
+            host=DB_HOST,
+            port=DB_PORT,
+            dbname=DB_NAME,
+        ) as aconn:
+            async with aconn.cursor(row_factory=class_row(TgPostMediaModel)) as acur:
+                await acur.execute(sql.SQL("""
                       INSERT INTO medias (name, post_id, mime_type)
                       VALUES (%s, %s, %s)
                       RETURNING *
                       """), (
-                          payload.name,
-                          payload.post_id,
-                          payload.mime_type,
-                      ))
-                  new_tg_post_media = await acur.fetchone()
-                  return new_tg_post_media
+                    payload.name,
+                    payload.post_id,
+                    payload.mime_type,
+                ))
+                new_tg_post_media = await acur.fetchone()
+                return new_tg_post_media
 
     @classmethod
     async def delete(cls, media_id: UUID) -> None:
         async with await psycopg.AsyncConnection.connect(
-              user=DB_USER,
-              password=DB_PASSWORD,
-              host=DB_HOST,
-              port=DB_PORT,
-              dbname=DB_NAME,
-          ) as aconn:
-              async with aconn.cursor() as acur:
-                  await acur.execute(sql.SQL("DELETE FROM medias WHERE id = %s"), (media_id,))
+            user=DB_USER,
+            password=DB_PASSWORD,
+            host=DB_HOST,
+            port=DB_PORT,
+            dbname=DB_NAME,
+        ) as aconn:
+            async with aconn.cursor() as acur:
+                await acur.execute(sql.SQL("DELETE FROM medias WHERE id = %s"), (media_id,))
 
     @classmethod
     async def update(cls, media_id: UUID, payload: UpdateTgPostMedia) -> Optional[TgPostMediaModel]:
         async with await psycopg.AsyncConnection.connect(
-              user=DB_USER,
-              password=DB_PASSWORD,
-              host=DB_HOST,
-              port=DB_PORT,
-              dbname=DB_NAME,
-          ) as aconn:
-              async with aconn.cursor(row_factory=class_row(TgPostMediaModel)) as acur:
-                  await acur.execute(sql.SQL("""
+            user=DB_USER,
+            password=DB_PASSWORD,
+            host=DB_HOST,
+            port=DB_PORT,
+            dbname=DB_NAME,
+        ) as aconn:
+            async with aconn.cursor(row_factory=class_row(TgPostMediaModel)) as acur:
+                await acur.execute(sql.SQL("""
                       UPDATE medias
                       SET name = %s, post_id = %s, mime_type = %s
                       WHERE id = %s
                       RETURNING *
                       """), (
-                          payload.name,
-                          payload.post_id,
-                          payload.mime_type,
-                          media_id
-                      ))
-                  updated_tg_post_media = await acur.fetchone()
-                  return updated_tg_post_media
+                    payload.name,
+                    payload.post_id,
+                    payload.mime_type,
+                    media_id
+                ))
+                updated_tg_post_media = await acur.fetchone()
+                return updated_tg_post_media
 
     @classmethod
     async def get_one_by_id(cls, media_id: UUID) -> Optional[TgPostMediaModel]:

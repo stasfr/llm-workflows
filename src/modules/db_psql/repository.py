@@ -47,8 +47,8 @@ class DatabasesRepository:
         await acur.execute(sql.SQL("""
             CREATE DATABASE {dbname}
             """).format(
-                dbname=sql.Identifier(dbname)
-            ))
+            dbname=sql.Identifier(dbname)
+        ))
         await aconn.commit()
 
         await acur.close()
@@ -69,8 +69,8 @@ class DatabasesRepository:
         await acur.execute(sql.SQL("""
             DROP DATABASE IF EXISTS {dbname}
             """).format(
-                dbname=sql.Identifier(dbname)
-            ))
+            dbname=sql.Identifier(dbname)
+        ))
         await aconn.commit()
 
         await acur.close()
@@ -78,7 +78,7 @@ class DatabasesRepository:
 
     @classmethod
     async def recreate_public_schema(cls, dbname: str) -> None:
-        async with await  psycopg.AsyncConnection.connect(
+        async with await psycopg.AsyncConnection.connect(
             user=DB_USER,
             password=DB_PASSWORD,
             host=DB_HOST,
@@ -93,7 +93,7 @@ class DatabasesRepository:
 
     @classmethod
     async def create_tables(cls, dbname: str) -> None:
-        async with await  psycopg.AsyncConnection.connect(
+        async with await psycopg.AsyncConnection.connect(
             user=DB_USER,
             password=DB_PASSWORD,
             host=DB_HOST,

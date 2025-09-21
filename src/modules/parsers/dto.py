@@ -7,9 +7,11 @@ from src.pkg.telegram_schemas import Reactions
 class StartParsing(BaseModel):
     apply_filters: bool
 
+
 class CreateMedia(BaseModel):
     name: str
     mime_type: Optional[str]
+
 
 class CreatePost(BaseModel):
     post_id: int

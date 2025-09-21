@@ -3,7 +3,14 @@ from typing import List, Annotated
 
 from fastapi import APIRouter, Body, Path
 
-from src.modules.tg_posts_media_data.services import get_all_telegram_posts_media_data, add_telegram_post_media_data, update_telegram_post_media_data, delete_telegram_post_media_data, get_telegram_post_media_data, get_telegram_posts_media_data_by_media_id
+from src.modules.tg_posts_media_data.services import (
+    get_all_telegram_posts_media_data,
+    add_telegram_post_media_data,
+    update_telegram_post_media_data,
+    delete_telegram_post_media_data,
+    get_telegram_post_media_data,
+    get_telegram_posts_media_data_by_media_id
+)
 from src.modules.tg_posts_media_data.schemas import TgPostsMediaDataModel
 from src.modules.tg_posts_media_data.dto import AddTgPostsMediaData, UpdateTgPostsMediaData
 from src.schemas import PlainDataResponse, ApiResponse
@@ -26,7 +33,8 @@ async def get_all_telegram_posts_media_data_handler() -> ApiResponse[List[TgPost
 
 @router.post("/", description="Add a new Telegram post media data.")
 async def add_telegram_post_media_data_handler(
-    payload: Annotated[AddTgPostsMediaData, Body(description="Telegram post media data creation payload")]
+    payload: Annotated[AddTgPostsMediaData, Body(
+        description="Telegram post media data creation payload")]
 ) -> ApiResponse[TgPostsMediaDataModel] | ApiResponse[PlainDataResponse]:
     try:
         new_tg_post_media_data = await add_telegram_post_media_data(payload)
@@ -57,7 +65,8 @@ async def update_telegram_post_media_data_handler(
         description="Id of the Telegram post media data to be updated",
         examples=["3fa85f64-5717-4562-b3fc-2c963f66afa6"]
     )],
-    payload: Annotated[UpdateTgPostsMediaData, Body(description="Telegram post media data update payload")]
+    payload: Annotated[UpdateTgPostsMediaData, Body(
+        description="Telegram post media data update payload")]
 ) -> ApiResponse[TgPostsMediaDataModel] | ApiResponse[PlainDataResponse]:
     try:
         updated_tg_post_media_data = await update_telegram_post_media_data(media_data_id, payload)

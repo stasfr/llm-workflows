@@ -1,4 +1,3 @@
-import os
 from uuid import UUID
 from typing import List
 import torch
@@ -32,7 +31,8 @@ async def store_embeddings_in_milvus(collection_name: str, psql_ids: List[UUID],
         # Insert the embeddings in batch
         collection.insert([
             [str(psql_id) for psql_id in psql_ids],  # psql_ids as varchar
-            [embedding.tolist() for embedding in embeddings]  # embeddings as float vectors
+            # embeddings as float vectors
+            [embedding.tolist() for embedding in embeddings]
         ])
 
         # Flush to make sure data is persisted
@@ -71,7 +71,8 @@ async def process_post_items(post_items: List[PostForEmbedding], embedder: OpenA
 
         # If we have texts to embed
         if texts_to_embed:
-            print(f"Received request to embed multiple: {len(texts_to_embed)} items")
+            print(
+                f"Received request to embed multiple: {len(texts_to_embed)} items")
             # Generate embeddings in batch
             embeddings = embedder.get_embedding(texts_to_embed)
 
@@ -85,7 +86,8 @@ async def process_post_items(post_items: List[PostForEmbedding], embedder: OpenA
             try:
                 await process_single_post_item(post_item, embedder, collection_name)
             except Exception as single_e:
-                print(f"Warning: Error processing post {post_item.post_id}: {single_e}")
+                print(
+                    f"Warning: Error processing post {post_item.post_id}: {single_e}")
 
 
 async def process_single_post_item(post_item: PostForEmbedding, embedder: OpenAIEmbedder, collection_name: str):

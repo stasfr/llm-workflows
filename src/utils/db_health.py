@@ -24,6 +24,7 @@ async def check_psql_connection():
         print(f"PostgreSQL connection failed: {e}")
         raise
 
+
 def _check_milvus_sync():
     """Synchronous part of milvus check"""
     connections.connect(

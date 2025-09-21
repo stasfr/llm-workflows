@@ -10,6 +10,7 @@ async def get_all_telegram_posts() -> List[TgPostModel]:
     all_tg_posts = await TgPostsRepository.get_all()
     return all_tg_posts
 
+
 async def add_telegram_post(payload: AddTgPost) -> TgPostModel:
     new_tg_post = await TgPostsRepository.add_one(payload)
 
@@ -18,8 +19,10 @@ async def add_telegram_post(payload: AddTgPost) -> TgPostModel:
 
     return new_tg_post
 
+
 async def delete_telegram_post(post_id: UUID) -> None:
     await TgPostsRepository.delete(post_id)
+
 
 async def update_telegram_post(post_id: UUID, payload: UpdateTgPost) -> TgPostModel:
     updated_tg_post = await TgPostsRepository.update(post_id, payload)
@@ -28,6 +31,7 @@ async def update_telegram_post(post_id: UUID, payload: UpdateTgPost) -> TgPostMo
         raise ValueError("Failed to update Telegram post")
 
     return updated_tg_post
+
 
 async def get_telegram_post(post_id: UUID) -> TgPostModel:
     tg_post_item = await TgPostsRepository.get_one_by_id(post_id)

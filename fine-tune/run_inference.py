@@ -9,7 +9,7 @@ LORA_MODEL_PATH = "./lora_model"
 # --- 1. Загрузка модели и токенизатора ---
 max_seq_length = 2048
 dtype = None      # None для автоматического определения
-load_in_4bit = True # 4-битная квантизация для экономии памяти
+load_in_4bit = True  # 4-битная квантизация для экономии памяти
 
 print("Loading base model...")
 model, tokenizer = FastLanguageModel.from_pretrained(
@@ -45,19 +45,22 @@ prompt_template = """### Instruction:
 # Инициализация стримера для вывода текста в реальном времени
 text_streamer = TextStreamer(tokenizer)
 
+
 def run_inference(input_text):
     """Функция для форматирования промпта и запуска генерации."""
     prompt = prompt_template.format(
         input_text,
-        "", # Пустой ответ для генерации
+        "",  # Пустой ответ для генерации
     )
     inputs = tokenizer([prompt], return_tensors="pt").to("cuda")
 
     print("---")
-    _ = model.generate(**inputs, streamer=text_streamer, max_new_tokens=5) # 5 токенов достаточно для "1" или "0"
+    # 5 токенов достаточно для "1" или "0"
+    _ = model.generate(**inputs, streamer=text_streamer, max_new_tokens=5)
     print("\n")
 
 # --- 4. Запуск тестового инференса ---
+
 
 # Пример №1: Рекламный текст
 ad_text = """

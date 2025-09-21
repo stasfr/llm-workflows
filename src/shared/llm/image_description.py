@@ -14,7 +14,7 @@ class ImageDescription:
         self.model_name = model_name
         self.client = OpenAI(
             base_url=LLM_API_URL,
-            api_key="not-needed" # required even if not used by the server
+            api_key="not-needed"  # required even if not used by the server
         )
 
     def _image_to_base64(self, image: Image.Image) -> str:

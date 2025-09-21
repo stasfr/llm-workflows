@@ -20,6 +20,7 @@ class PostModel(BaseModel):
 
     created_at: datetime
 
+
 class MediaModel(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -31,6 +32,7 @@ class MediaModel(BaseModel):
     post_id: Optional[UUID]
 
     created_at: datetime
+
 
 class MediaDataModel(BaseModel):
     model_config = ConfigDict(from_attributes=True)
