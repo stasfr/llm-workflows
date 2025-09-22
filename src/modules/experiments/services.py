@@ -45,3 +45,8 @@ async def get_experiment(experiment_id: UUID) -> ExperimentModel:
 async def get_experiments_by_tg_export(tg_export_id: UUID) -> List[ExperimentModel]:
     experiments = await ExperimentsRepository.get_by_tg_export_id(tg_export_id)
     return experiments
+
+
+async def get_experiment_sqlite_path(experiment_id: UUID) -> str:
+    """Get the SQLite database path for an experiment."""
+    return await ExperimentsRepository.get_sqlite_path(experiment_id)

@@ -185,7 +185,6 @@ class DatabasesRepository:
                         tg_export_id UUID,
                         FOREIGN KEY (tg_export_id) REFERENCES tg_exports(id) ON DELETE SET NULL,
 
-                        sqlite_path TEXT NOT NULL,
                         milvus_collection_name TEXT NOT NULL,
                         meta_data JSONB,
 
