@@ -1,11 +1,14 @@
 from typing import List, Optional
 from datetime import datetime
+from uuid import UUID
 from pydantic import BaseModel
 from src.pkg.telegram_schemas import Reactions
 
 
 class StartParsing(BaseModel):
     apply_filters: bool
+    tg_export_id: UUID
+    experiment_id: UUID
 
 
 class CreateMedia(BaseModel):

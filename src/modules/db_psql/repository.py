@@ -177,3 +177,18 @@ class DatabasesRepository:
                         updated_at TIMESTAMPTZ
                     )
                     """))
+
+                await acur.execute(sql.SQL("""
+                    CREATE TABLE IF NOT EXISTS experiments (
+                        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+
+                        tg_export_id UUID,
+                        FOREIGN KEY (tg_export_id) REFERENCES tg_exports(id) ON DELETE SET NULL,
+
+                        milvus_collection_name TEXT NOT NULL,
+                        meta_data JSONB,
+
+                        created_at TIMESTAMPTZ DEFAULT (NOW() AT TIME ZONE 'UTC'),
+                        updated_at TIMESTAMPTZ
+                    )
+                    """))
