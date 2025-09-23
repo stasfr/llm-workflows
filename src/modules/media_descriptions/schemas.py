@@ -7,7 +7,6 @@ class MediaForProcessing(BaseModel):
     media_id: UUID
     media_data_id: UUID
     media_name: str
-    photos_path: str
 
 
 class MediaDataUpdate(BaseModel):

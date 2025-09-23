@@ -10,11 +10,11 @@ from src.shared.llm.image_description import ImageDescription
 from src.modules.jobs.services import add_job, update_job_status
 from src.modules.jobs.schemas import JobStatus, AddJob, UpdateJobStatus
 from src.config import STORAGE_FOLDER
+from src.modules.tg_exports.repository import TgExportsRepository
 
 
-async def process_media_item(media_item: MediaForProcessing, image_describer: ImageDescription):
-    image_path = os.path.join(
-        STORAGE_FOLDER, media_item.photos_path.lstrip('\\/'), media_item.media_name)
+async def process_media_item(image_base_path: str, media_item: MediaForProcessing, image_describer: ImageDescription, experiment_id: UUID):
+    image_path = os.path.join(image_base_path, media_item.media_name)
 
     if not os.path.exists(image_path):
         print(f"Warning: Image not found at {image_path}")
@@ -41,25 +41,30 @@ async def process_media_item(media_item: MediaForProcessing, image_describer: Im
                 tag_time=tag_time,
                 struct_desc_time=struct_desc_time
             )
-            await MediaDescriptionsRepository.update_media_data(update_data)
+            await MediaDescriptionsRepository.update_media_data(experiment_id, update_data)
     except Exception as e:
         print(f"Warning: Error processing image {media_item.media_id}: {e}")
 
 
-async def background_process_by_export(export_id: UUID, model_name: str, job_id: UUID):
+async def background_process_by_export(experiment_id: UUID, export_id: UUID, model_name: str, job_id: UUID):
     # Update job status to in progress if job_id is provided
     if job_id:
         await update_job_status(job_id, UpdateJobStatus(status=JobStatus.IN_PROGRESS))
 
     image_describer = ImageDescription(model_name=model_name)
+    tg_export = await TgExportsRepository.get_one_by_id(export_id)
+    if not tg_export:
+        raise ValueError(f"Telegram export with ID {export_id} not found")
+    image_base_path = os.path.join(
+        STORAGE_FOLDER, tg_export.photos_path.lstrip('\\/'))
     page_size = 10
     page = 0
     while True:
-        media_to_process = await MediaDescriptionsRepository.get_media_for_processing_by_export_id(export_id, page_size, page * page_size)
+        media_to_process = await MediaDescriptionsRepository.get_media_for_processing_by_export_id(experiment_id, export_id, page_size, page * page_size)
         if not media_to_process:
             break
         for media_item in media_to_process:
-            await process_media_item(media_item, image_describer)
+            await process_media_item(image_base_path, media_item, image_describer, experiment_id)
         if len(media_to_process) < page_size:
             break
         page += 1
@@ -76,18 +81,8 @@ async def background_process_by_post(post_id: UUID, model_name: str, job_id: UUI
     if job_id:
         await update_job_status(job_id, UpdateJobStatus(status=JobStatus.IN_PROGRESS))
 
-    image_describer = ImageDescription(model_name=model_name)
-    page_size = 10
-    page = 0
-    while True:
-        media_to_process = await MediaDescriptionsRepository.get_media_for_processing_by_post_id(post_id, page_size, page * page_size)
-        if not media_to_process:
-            break
-        for media_item in media_to_process:
-            await process_media_item(media_item, image_describer)
-        if len(media_to_process) < page_size:
-            break
-        page += 1
+    # Deprecated in new flow; keeping stub for compatibility if referenced elsewhere
+    return
 
     # Update job status to completed if job_id is provided
     if job_id:
@@ -101,10 +96,8 @@ async def background_process_single(media_id: UUID, model_name: str, job_id: UUI
     if job_id:
         await update_job_status(job_id, UpdateJobStatus(status=JobStatus.IN_PROGRESS))
 
-    image_describer = ImageDescription(model_name=model_name)
-    media_item = await MediaDescriptionsRepository.get_media_for_processing_by_media_id(media_id)
-    if media_item:
-        await process_media_item(media_item, image_describer)
+    # Deprecated in new flow; keeping stub for compatibility if referenced elsewhere
+    return
 
     # Update job status to completed if job_id is provided
     if job_id:
@@ -114,39 +107,12 @@ async def background_process_single(media_id: UUID, model_name: str, job_id: UUI
 
 
 async def start_image_description_generation_by_export(
-    export_id: UUID,
     payload: GenerateImageDescriptionsPayload,
     background_tasks: BackgroundTasks
 ):
     # Create a job for tracking this background process
-    job_metadata = f"Process media for export with {export_id}"
+    job_metadata = f"Process media for export with {payload.tg_export_id}"
     job = await add_job(AddJob(status=JobStatus.PENDING, metadata=job_metadata))
 
     background_tasks.add_task(
-        background_process_by_export, export_id, payload.model_name, job.id)
-
-
-async def start_image_description_generation_by_post(
-    post_id: UUID,
-    payload: GenerateImageDescriptionsPayload,
-    background_tasks: BackgroundTasks
-):
-    # Create a job for tracking this background process
-    job_metadata = f"Process media for post with {post_id}"
-    job = await add_job(AddJob(status=JobStatus.PENDING, metadata=job_metadata))
-
-    background_tasks.add_task(
-        background_process_by_post, post_id, payload.model_name, job.id)
-
-
-async def start_image_description_generation_by_media(
-    media_id: UUID,
-    payload: GenerateImageDescriptionsPayload,
-    background_tasks: BackgroundTasks
-):
-    # Create a job for tracking this background process
-    job_metadata = f"Process single media with {media_id}"
-    job = await add_job(AddJob(status=JobStatus.PENDING, metadata=job_metadata))
-
-    background_tasks.add_task(
-        background_process_single, media_id, payload.model_name, job.id)
+        background_process_by_export, payload.experiment_id, payload.tg_export_id, payload.model_name, job.id)
